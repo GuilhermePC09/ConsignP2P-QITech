@@ -11,21 +11,30 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+import sys
+from dotenv import load_dotenv
+import dj_database_url
+from dj_database_url import ParseError
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# load .env from project root
+DOTENV_PATH = BASE_DIR / ".env"
+load_dotenv(DOTENV_PATH, override=True)
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-wbd1#+95y@4k4t(e^&5&n#rs6g-!khm=wb874br1^rh7ga&xbl'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-wbd1#+95y@4k4t(e^&5&n#rs6g-!khm=wb874br1^rh7ga&xbl')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [h for h in os.getenv('ALLOWED_HOSTS', '').split(',') if h]
 
 
 # Application definition
@@ -72,12 +81,29 @@ WSGI_APPLICATION = 'consign_app.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+DATABASE_URL = os.getenv('DATABASE_URL')
+
+if DATABASE_URL:
+    try:
+        # set ssl_require=True for production DBs that require TLS (Railway typically does)
+        DATABASES = {
+            'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
+        }
+    except ParseError:
+        print("Warning: DATABASE_URL is malformed. Falling back to SQLite.")
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+        }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
 
 
 # Password validation
@@ -120,3 +146,10 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Debug
+
+if "runserver" in sys.argv and os.environ.get("RUN_MAIN") == "true":
+    c = DATABASES["default"]
+    print(f"[DB] {c['ENGINE'].split('.')[-1]} → {str(c.get('NAME'))} @ {c.get('HOST') or ''}:{c.get('PORT') or ''}")
