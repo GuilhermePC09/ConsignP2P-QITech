@@ -2,3 +2,5 @@ django==5.2.7
 python-dotenv>=1.0.0
 dj-database-url>=1.0
 psycopg2-binary>=2.9
+# optional / useful for production
+gunicorn>=20.1.0
