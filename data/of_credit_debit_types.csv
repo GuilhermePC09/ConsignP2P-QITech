@@ -1,0 +1,5 @@
+codigo,descricao
+CREDIT,Entrada de recursos
+DEBIT,Saída de recursos
+REVERSAL_C,Estorno de crédito
+REVERSAL_D,Estorno de débito

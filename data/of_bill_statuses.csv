@@ -1,0 +1,5 @@
+codigo,descricao
+OPEN,Fatura aberta
+CLOSED,Fatura fechada
+OVERDUE,Fatura em atraso
+PAID,Fatura paga
