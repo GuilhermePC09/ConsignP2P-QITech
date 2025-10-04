@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     "consign_app.core_db.apps.CoreDbConfig",
+    "consign_app.dataprev_mock.apps.DataprevAPIMockConfig",
+    "consign_app.open_finance_mock.apps.OpenFinanceAPIMockConfig",
 ]
 
 MIDDLEWARE = [
