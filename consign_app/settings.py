@@ -36,7 +36,7 @@ SECRET_KEY = os.getenv(
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = [h for h in os.getenv('ALLOWED_HOSTS', '').split(
-    ',') if h] + ['qinvest.herokuapp.com']
+    ',') if h] + ['localhost', '127.0.0.1', 'qinvest.herokuapp.com', 'qinvest-e6dff5bd1fe6.herokuapp.com']
 
 # TODO: colocar na .env
 os.environ.setdefault(
