@@ -37,6 +37,9 @@ DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = [h for h in os.getenv('ALLOWED_HOSTS', '').split(',') if h]
 
+# TODO: colocar na .env
+os.environ.setdefault("PD_MODEL_PATH", "mlops/training/risk__LOGR1/outputs/models/pd_logr1.joblib")
+os.environ.setdefault("SCORING_CONF", "mlops/conf/scoring.yaml")
 
 # Application definition
 
@@ -53,6 +56,7 @@ INSTALLED_APPS = [
     "consign_app.api.apps.ApiConfig",
     "consign_app.dataprev_mock.apps.DataprevAPIMockConfig",
     "consign_app.open_finance_mock.apps.OpenFinanceAPIMockConfig",
+    "risk",
 ]
 
 MIDDLEWARE = [

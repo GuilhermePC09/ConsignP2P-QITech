@@ -1,0 +1,20 @@
+mode: "model"          # "model" (usa LINR1) | "rule" (usa fórmula direta)
+caps:
+  min_rate_monthly: 0.017
+  max_rate_monthly: 0.045
+
+# curva-alvo (unit economics) – usada quando não há histórico real
+unit_economics:
+  funding_rate_monthly: 0.018     # custo de funding
+  opex_rate_monthly:    0.004     # custo operacional
+  lgd:                  0.45      # perda dada inadimplência
+  margin_monthly:       0.006     # margem alvo
+  hazard_assumption:    "flat"    # PD_12m / 12
+  k_smoothing:          0.85      # suaviza risco (0.7–1.0)
+
+# treino do modelo
+training:
+  poly_degree: 2        # 1 = linear; 2 = quadrático
+  enforce_monotonic: true
+  pd_min: 0.002
+  pd_max: 0.60

@@ -1,0 +1,30 @@
+{
+  "model_file": "/Users/guilhermepifferchristo/Desktop/ConsignP2P-QITech/mlops/training/risk__LOGR1/outputs/models/pd_logr1.joblib",
+  "features": [
+    "beneficio_ativo",
+    "tempo_beneficio_meses",
+    "emprego_ativo",
+    "tempo_emprego_meses",
+    "renda_media_6m",
+    "coef_var_renda",
+    "pct_meses_saldo_neg_6m",
+    "utilizacao_cartao",
+    "pct_minimo_pago_3m",
+    "num_faturas_vencidas_3m",
+    "endividamento_total",
+    "parcelas_renda",
+    "DPD_max_12m",
+    "idade",
+    "tempo_rel_banco_meses"
+  ],
+  "target": "default90",
+  "n_train": 9600,
+  "n_test": 2400,
+  "metrics": {
+    "auc": 0.6920072511286348,
+    "ks": 0.2723655974230325,
+    "brier": 0.10621395526474547
+  },
+  "calibrated": true,
+  "created_at": 1759617193
+}
