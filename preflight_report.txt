@@ -1,0 +1,19 @@
+CSV Preflight report
+
+Offers referencing missing borrowers: 0
+Contracts referencing missing offers: 0
+Disbursements referencing missing contracts: 0
+Installments referencing missing contracts: 0
+Payments referencing missing installments: 0
+Payments referencing missing contracts: 0
+Investors referencing missing wallets (primary): 0
+Agreements referencing missing borrowers: 0
+
+Summary of existing ID counts:
+  wallets: 20
+  investors: 20
+  borrowers: 40
+  agreements: 20
+  offers (detected): 20
+  contracts: 54
+  installments: 35

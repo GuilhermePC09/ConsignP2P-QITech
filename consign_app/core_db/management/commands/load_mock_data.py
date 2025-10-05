@@ -153,28 +153,30 @@ class Command(BaseCommand):
 
         for row in rows:
             try:
-                # Skip if owner_id is required but missing
-                if not row['owner_id'] and row['owner_type'] != 'platform':
-                    self.stdout.write(
-                        self.style.WARNING(
-                            f'Skipping wallet {row["wallet_id"]} - missing owner_id')
-                    )
-                    continue
+                # Create wallet even if owner_id is missing. Some mock data
+                # references wallets that may not have owner_id populated; it's
+                # safer to create the wallet with owner_id=None rather than
+                # skipping it which causes downstream FK failures.
+                owner_id_val = None
+                if row.get('owner_id'):
+                    try:
+                        owner_id_val = uuid.UUID(row['owner_id'])
+                    except Exception:
+                        owner_id_val = None
 
                 Wallet.objects.create(
                     wallet_id=uuid.UUID(row['wallet_id']),
-                    owner_type=row['owner_type'],
-                    owner_id=uuid.UUID(
-                        row['owner_id']) if row['owner_id'] else None,
+                    owner_type=row.get('owner_type', ''),
+                    owner_id=owner_id_val,
                     currency=row['currency'] if row['currency'] else 'BRL',
                     available_balance=Decimal(row['available_balance']),
                     blocked_balance=Decimal(row['blocked_balance']),
                     status=row['status'] if row['status'] else 'active',
-                    external_reference=row['external_reference'] if row['external_reference'] else '',
+                    external_reference=row.get('external_reference', ''),
                     account_key=row['account_key'] if row['account_key'] else '',
                     created_at=parse_datetime(row['created_at']),
                     updated_at=parse_datetime(row['updated_at']),
-                    trace_id=row['trace_id'] if row['trace_id'] else '',
+                    trace_id=row.get('trace_id', ''),
                 )
                 count += 1
             except Exception as e:
@@ -193,9 +195,18 @@ class Command(BaseCommand):
         for row in rows:
             try:
                 primary_wallet = None
-                if row['primary_wallet_id']:
-                    primary_wallet = Wallet.objects.get(
-                        wallet_id=uuid.UUID(row['primary_wallet_id']))
+                # Some CSVs use different header names or reference wallets
+                # that may not be present. Be tolerant: try to resolve the
+                # primary wallet, but don't fail the whole investor load if
+                # the wallet is missing.
+                primary_wallet_id = row.get(
+                    'primary_wallet_id') or row.get('primary_wallet')
+                if primary_wallet_id:
+                    try:
+                        primary_wallet = Wallet.objects.get(
+                            wallet_id=uuid.UUID(primary_wallet_id))
+                    except Exception:
+                        primary_wallet = None
 
                 Investor.objects.create(
                     investor_id=uuid.UUID(row['investor_id']),
@@ -264,10 +275,17 @@ class Command(BaseCommand):
 
         for row in rows:
             try:
+                # CSVs may use 'consignment_agreement' or
+                # 'consignment_agreement_id' as the column. Accept both.
                 agreement = None
-                if row['consignment_agreement_id']:
-                    agreement = ConsignmentAgreement.objects.get(
-                        consignment_agreement_id=uuid.UUID(row['consignment_agreement_id']))
+                ca_field = row.get('consignment_agreement_id') or row.get(
+                    'consignment_agreement')
+                if ca_field:
+                    try:
+                        agreement = ConsignmentAgreement.objects.get(
+                            consignment_agreement_id=uuid.UUID(ca_field))
+                    except Exception:
+                        agreement = None
 
                 Borrower.objects.create(
                     borrower_id=uuid.UUID(row['borrower_id']),
@@ -284,7 +302,7 @@ class Command(BaseCommand):
                     consignment_agreement=agreement,
                     created_at=parse_datetime(row['created_at']),
                     updated_at=parse_datetime(row['updated_at']),
-                    trace_id=row['trace_id'] if row['trace_id'] else '',
+                    trace_id=row.get('trace_id', ''),
                 )
                 count += 1
             except Exception as e:
@@ -313,7 +331,9 @@ class Command(BaseCommand):
                     evidences=row['evidences'],
                     natural_person_key=row['natural_person_key'] if row['natural_person_key'] else None,
                     legal_person_key=row['legal_person_key'] if row['legal_person_key'] else None,
-                    external_reference=row['external_reference'] if row['external_reference'] else None,
+                    # Database enforces NOT NULL for external_reference in
+                    # this project; default to empty string when missing.
+                    external_reference=row.get('external_reference', ''),
                     created_at=parse_datetime(row['created_at']),
                     updated_at=parse_datetime(row['updated_at']),
                     trace_id=row['trace_id'] if row['trace_id'] else None,
@@ -333,11 +353,23 @@ class Command(BaseCommand):
 
         for row in rows:
             try:
-                borrower = Borrower.objects.get(
-                    borrower_id=uuid.UUID(row['borrower_id']))
+                # Some loan offer rows may reference borrowers that weren't
+                # loaded (CSV mismatch). If borrower is missing, skip the
+                # offer gracefully.
+                try:
+                    borrower = Borrower.objects.get(
+                        borrower_id=uuid.UUID(row['borrower_id']))
+                except Exception as e:
+                    self.stdout.write(
+                        self.style.WARNING(
+                            f"Skipping loan offer {row.get('offer_id', row.get('offer', 'unknown'))} - borrower not found: {e}"
+                        )
+                    )
+                    continue
 
                 LoanOffer.objects.create(
-                    offer_id=uuid.UUID(row['offer_id']),
+                    offer_id=uuid.UUID(row.get('offer_id')
+                                       or row.get('offer')),
                     borrower=borrower,
                     amount=Decimal(row['amount']),
                     rate=Decimal(row['rate']),  # Correct field name
@@ -356,7 +388,7 @@ class Command(BaseCommand):
             except Exception as e:
                 self.stdout.write(
                     self.style.ERROR(
-                        f'Error loading loan offer {row.get("offer_id", "unknown")}: {e}')
+                        f'Error loading loan offer {row.get("offer_id", row.get("offer", "unknown"))}: {e}')
                 )
 
         return count
@@ -368,9 +400,14 @@ class Command(BaseCommand):
 
         for row in rows:
             try:
-                # Get the offer this contract is based on
+                # Get the offer this contract is based on. Accept CSVs that
+                # name the column 'offer' instead of 'offer_id'.
+                offer_field = row.get('offer_id') or row.get('offer')
+                if not offer_field:
+                    raise KeyError('offer_id')
+
                 offer = LoanOffer.objects.get(
-                    offer_id=uuid.UUID(row['offer_id']))
+                    offer_id=uuid.UUID(offer_field))
 
                 Contract.objects.create(
                     contract_id=uuid.UUID(row['contract_id']),
@@ -573,11 +610,14 @@ class Command(BaseCommand):
 
         for row in rows:
             try:
-                if row['borrower_id']:
+                # Accept both 'borrower' and 'borrower_id' column names in
+                # the consignment agreements CSV when linking.
+                borrower_field = row.get('borrower_id') or row.get('borrower')
+                if borrower_field:
                     agreement = ConsignmentAgreement.objects.get(
                         consignment_agreement_id=uuid.UUID(row['consignment_agreement_id']))
                     borrower = Borrower.objects.get(
-                        borrower_id=uuid.UUID(row['borrower_id']))
+                        borrower_id=uuid.UUID(borrower_field))
 
                     # Update agreement to reference borrower
                     agreement.borrower = borrower

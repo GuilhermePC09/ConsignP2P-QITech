@@ -1,0 +1,2 @@
+reconciliation_id,period_start,period_end,source,totals_expected,totals_actual,differences,status,trace_id,created_at,updated_at
+687ec4f8-111b-44fd-a8bd-bf536b2180ef,2025-08-01T00:00:00,2025-08-31T23:59:59,bank,"{""payments"": 799}","{""payments"": 796}","{""payments"": 4}",open,seed-inss-based,2025-10-04T12:00:00,2025-10-04T12:00:00
