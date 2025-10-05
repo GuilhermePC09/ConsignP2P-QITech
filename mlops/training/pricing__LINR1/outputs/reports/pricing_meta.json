@@ -3,8 +3,8 @@
   "type": "linr+isotonic",
   "poly_degree": 2,
   "caps": {
-    "min_rate_monthly": 0.017,
-    "max_rate_monthly": 0.045
+    "min_rate_monthly": 0.02,
+    "max_rate_monthly": 0.05
   },
   "labels": "historical",
   "trained_on": "mlops/training/pricing__LINR1/data/pricing_train.csv"
