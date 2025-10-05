@@ -1,60 +1,74 @@
 # ConsignP2P-QITech
 
-## Sobre
-Sistema de avaliação de risco e precificação de crédito consignado baseado em machine learning.
+## 🧠 Sobre
+Sistema de avaliação de **risco** e **precificação de crédito consignado** baseado em **machine learning**, desenvolvido em **Django + scikit-learn**.
 
-## Pré-requisitos
+---
 
-- Python 3.10+
+## ⚙️ Pré-requisitos
+
+- Python **3.10+**
 - PostgreSQL
 - Git
-- Poetry (recomendado)
-- VS Code com extensões Python
+- VS Code (com extensões Python)
+- `pip` atualizado (`pip install --upgrade pip`)
 
-## Estrutura do Projeto
+---
+
+## 🗂️ Estrutura do Projeto
 ```
 ConsignP2P-QITech/
-├── consign_app/          # Aplicação Django
-├── mlops/                # Componentes ML
-│   ├── conf/            # Configurações YAML
-│   └── training/        # Pipelines de treino
-├── risk/                # Módulo de risco
-├── outputs/             # Artefatos gerados
-├── tests/               # Testes
-└── scripts/             # Scripts utilitários
+├── consign_app/          # Aplicação Django principal
+├── mlops/                # Componentes de machine learning
+│   ├── conf/             # Configurações YAML (score, pricing)
+│   └── training/         # Pipelines de treino e avaliação
+├── risk/                 # Módulo de risco (endpoints e serviços)
+├── outputs/              # Artefatos e relatórios gerados
+├── tests/                # Testes unitários e integração
+└── scripts/              # Scripts utilitários
 ```
 
-## Configuração Inicial
+---
 
-1. Clone e prepare ambiente:
+## 🚀 Configuração Inicial
+
+### 1. Clone e prepare o ambiente
 ```bash
 git clone https://github.com/seu-usuario/ConsignP2P-QITech.git
 cd ConsignP2P-QITech
 
-# Com Poetry (recomendado)
-poetry install
-
-# OU com venv
+# Crie e ative o ambiente virtual
 python3 -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate  # (Windows: .venv\Scripts\activate)
+
+# Instale as dependências
 pip install -r requirements.txt
 ```
 
-2. Configure variáveis:
+---
+
+### 2. Configure variáveis de ambiente
+Crie seu arquivo `.env` (baseado em `.env.example`):
 ```bash
 cp .env.example .env
+```
 
-# Edite .env com:
+Edite os valores conforme o seu ambiente local:
+```env
 DATABASE_URL=postgresql://user:pass@localhost:5432/consignp2p
 SECRET_KEY=sua-chave-secreta
 DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1
+
+# Caminhos para artefatos de ML
 PD_MODEL_PATH=mlops/training/risk__LOGR1/outputs/models/pd_logr1.joblib
 SCORING_CONF=mlops/conf/scoring.yaml
 PRICING_MODEL_PATH=mlops/training/pricing__LINR1/outputs/models/pricing_linr1.joblib
 ```
 
-3. Prepare banco e diretórios:
+---
+
+### 3. Prepare banco e diretórios
 ```bash
 createdb consignp2p
 python manage.py migrate
@@ -64,24 +78,26 @@ mkdir -p outputs/{models,reports,plots}
 mkdir -p mlops/training/{risk__LOGR1,pricing__LINR1}/outputs/models
 ```
 
-## Desenvolvimento
+---
 
-1. Ative ambiente e rode servidor:
+## 💻 Desenvolvimento
+
+### 1. Ative o ambiente e rode o servidor
 ```bash
-poetry shell  # ou source .venv/bin/activate
+source .venv/bin/activate
 python manage.py runserver
 ```
 
-2. Endpoints principais:
-- Admin: http://127.0.0.1:8000/admin/
-- API Docs: http://127.0.0.1:8000/api/docs/
-- Score: http://127.0.0.1:8000/risk/score
+### 2. Endpoints principais
+- Admin: [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/)
+- API Docs: [http://127.0.0.1:8000/api/docs/](http://127.0.0.1:8000/api/docs/)
+- Scoring: [http://127.0.0.1:8000/risk/score](http://127.0.0.1:8000/risk/score)
 
-3. Exemplo de request scoring:
+---
+
+### 3. Exemplo de request para `/risk/score`
 ```bash
-curl -X POST http://127.0.0.1:8000/risk/score \
-  -H "Content-Type: application/json" \
-  -d '{
+curl -X POST http://127.0.0.1:8000/risk/score   -H "Content-Type: application/json"   -d '{
     "features": {
       "beneficio_ativo": 1,
       "tempo_beneficio_meses": 48,
@@ -105,49 +121,60 @@ curl -X POST http://127.0.0.1:8000/risk/score \
   }'
 ```
 
-## Testes
+---
+
+## 🧪 Testes
 
 ```bash
-# Testes unitários
+# Testes unitários Django
 python manage.py test
 
-# Teste ML
+# Testes de integração de ML
 python mlops/training/risk__LOGR1/test_integration.py
 ```
 
-## Documentação
+---
 
-- [README ML](mlops/README.md) - Detalhes dos modelos e pipelines
-- [API Docs](docs/api.md) - Documentação da API
+## 📘 Documentação
 
-## Scripts Úteis
+- [README ML](mlops/README.md) — detalhes dos modelos e pipelines  
+- [API Docs](docs/api.md) — documentação dos endpoints  
+
+---
+
+## 🧰 Scripts Úteis
 
 ```bash
-# Atualizar deps
-poetry update  # ou pip install -r requirements.txt --upgrade
+# Atualizar dependências
+pip install -r requirements.txt --upgrade
 
-# Limpar cache
+# Limpar caches e arquivos temporários
 python manage.py clean_pyc
 python manage.py clear_cache
 ```
 
-## VS Code
+---
 
-Extensões recomendadas:
+## 🧩 VS Code
+
+**Extensões recomendadas**
 - Python
 - Jupyter
 - Git Lens
 - YAML
 
-Settings sugeridos:
+**Settings sugeridos**
 ```json
 {
-    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
-    "python.testing.pytestEnabled": true,
-    "python.formatting.provider": "black"
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "python.testing.pytestEnabled": true,
+  "python.formatting.provider": "black"
 }
 ```
 
-## Suporte
+---
 
-Contato: dev@empresa.com.br
+## 📞 Suporte
+
+Para dúvidas e suporte técnico:  
+📧 dev@empresa.com.br
