@@ -1,5 +1,7 @@
 # ConsignP2P-QITech
 
+Demo do projeto: https://qinvest-e6dff5bd1fe6.herokuapp.com
+
 ## 🧠 Sobre
 Sistema de avaliação de **risco** e **precificação de crédito consignado** baseado em **machine learning**, desenvolvido em **Django + scikit-learn**.
 
