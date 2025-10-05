@@ -24,4 +24,5 @@ urlpatterns = [
     path("dataprev/", include("consign_app.dataprev_mock.urls")),
     path("of/", include("consign_app.open_finance_mock.urls")),
     path("risk/", include(("risk.urls", "risk"), namespace="risk")),
+    path("qitech/", include("consign_app.qitech_mock.urls")),
 ]
