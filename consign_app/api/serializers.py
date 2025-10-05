@@ -600,6 +600,8 @@ class SimulationCreateSerializer(serializers.Serializer):
 class SimulationResultSerializer(serializers.Serializer):
     """Serializer for simulation results"""
     offer_id = serializers.UUIDField()
+    rate = serializers.DecimalField(max_digits=9, decimal_places=6)      
+    band = serializers.CharField(max_length=1, allow_null=True, required=False)  
     cet = serializers.DecimalField(max_digits=9, decimal_places=6)
     apr = serializers.DecimalField(max_digits=9, decimal_places=6)
     preview_installments = PreviewInstallmentSerializer(many=True)

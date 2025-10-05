@@ -9,7 +9,7 @@ from datetime import date, datetime, timedelta
 from decimal import Decimal
 import requests
 from django.urls import reverse
-from consign_app.api.feature_builder import build_features_for_borrower, FeatureBuildError
+from consign_app.api.helper import build_features_for_borrower, analyze_eligibility, FeatureBuildError
 
 from .permissions import IsOAuth2Authenticated
 
@@ -458,8 +458,38 @@ def borrower_create_simulation(request, borrower_id):
             "amount": float(pmt)
         })
 
+    # # === Checagem de elegibilidade (band + 35% renda) ===
+    try:
+        elig = analyze_eligibility(
+            band=risk.get("band"),
+            # band="C"                                      # ← já vem: "A".."E"
+            installment=(Decimal(str(risk["installment"])) if risk.get("installment") is not None else None),
+            amount=Decimal(str(amount)) if risk.get("installment") is None else None,
+            term_months=int(term_months) if risk.get("installment") is None else None,
+            monthly_rate=monthly_rate if risk.get("installment") is None else None,
+            features=features,                                      # tem renda_media_6m
+            request=request,                                        # fallback p/ buscar renda
+            cpf=cpf,
+            min_band="D",
+            max_income_ratio=Decimal("0.35"),
+        )
+    except FeatureBuildError as e:
+        return Response({"detail": f"Falha na análise de elegibilidade: {str(e)}"}, status=400)
+
+    if not elig["eligible"]:
+        return Response({
+            "detail": "Empréstimo negado pelas regras de elegibilidade.",
+            "reasons": elig["reasons"],           # ["score_insuficiente(<D)"] / ["parcela_acima_35pct_renda"] etc.
+            "band": elig["band"],                 # ex.: "C"
+            "installment": elig["installment"],   # ex.: 591.63
+            "renda_mensal": elig["renda_mensal"], # ex.: 4200.0
+            "thresholds": elig["thresholds"],     # min_band, renda_limite_35pct, etc.
+        }, status=status.HTTP_400_BAD_REQUEST)
+
     result_data = {
         "offer_id": offer.offer_id,
+        "rate": float(rate),
+        "band": risk.get("band"),
         "cet": float(cet),
         "apr": float(apr),
         "preview_installments": preview_installments,

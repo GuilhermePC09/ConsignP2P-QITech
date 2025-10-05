@@ -470,3 +470,141 @@ def build_features_for_borrower(
         raise FeatureBuildError(f"Features incompletas: ausentes {miss}")
 
     return features
+
+# ======================
+# Elegibilidade (band + affordability)
+# ======================
+
+_GRADE_ORDER = {"A": 1, "B": 2, "C": 3, "D": 4, "E": 5}  # mapeamento de ordem
+
+def _normalize_letter(v) -> Optional[str]:
+    if v is None:
+        return None
+    s = str(v).strip().upper()
+    if not s:
+        return None
+    c = s[0]
+    return c if c in _GRADE_ORDER else None
+
+def _compute_installment(amount: Decimal, term_months: int, monthly_rate: Decimal) -> Decimal:
+    if term_months <= 0:
+        raise FeatureBuildError("Termo inválido para cálculo da parcela")
+    if monthly_rate == 0:
+        pmt = amount / Decimal(term_months)
+    else:
+        n  = Decimal(term_months)
+        mr = monthly_rate
+        pmt = amount * (mr * (1 + mr) ** n) / ((1 + mr) ** n - 1)
+    return pmt.quantize(Decimal("0.01"))
+
+def _fetch_renda_media_6m_only(*, request, cpf: str) -> Decimal:
+    """Renda média 6m via Open Finance (mesma lógica da sua seção Accounts)."""
+    today = date.today()
+    url_acc = _abs_url(request, path=OF_ACCOUNTS_PATH)
+    h_of    = _auth_headers(request, prefer_header=True, fallback_token=OPENFIN_TOKEN)
+    acc_resp = requests.get(url_acc, params={"cpf": cpf}, headers=h_of, timeout=5)
+    acc_root = _json_ok(acc_resp, "OpenFinance/accounts")
+    accounts = acc_root.get("data", [])
+    if not isinstance(accounts, list) or not accounts:
+        raise FeatureBuildError("OpenFinance/accounts: nenhuma conta encontrada")
+
+    months6: List[str] = _last_n_months(6, today)
+    date_from = (today.replace(day=1) - timedelta(days=180)).strftime("%Y-%m-%d")
+    date_to   = today.strftime("%Y-%m-%d")
+
+    income_per_month: Dict[str, Decimal] = {m: Decimal("0") for m in months6}
+
+    for acc in accounts:
+        acc_id = acc.get("accountId")
+        if not acc_id:
+            continue
+        tx_url = _abs_url(request, path=OF_ACC_TX_PATH.format(account_id=acc_id))
+        tx_resp = requests.get(tx_url, params={"from": date_from, "to": date_to}, headers=h_of, timeout=5)
+        tx_root = _json_ok(tx_resp, f"OpenFinance/transactions ({acc_id})")
+        txs = tx_root.get("data", [])
+        if not isinstance(txs, list):
+            raise FeatureBuildError(f"OpenFinance/transactions: campo 'data' inválido ({acc_id})")
+        for tx in txs:
+            d_s = tx.get("bookingDate")
+            if not d_s:
+                continue
+            ym = d_s[:7]
+            if ym not in income_per_month:
+                continue
+            if (tx.get("creditDebitType") or "").upper() == "CREDIT":
+                income_per_month[ym] += _parse_money(tx.get("amount"))
+
+    total_income_6m = sum(income_per_month.values(), Decimal("0"))
+    renda_media_6m = (total_income_6m / Decimal(6)) if total_income_6m > 0 else Decimal("0")
+    return renda_media_6m.quantize(Decimal("0.01"))
+
+def analyze_eligibility(
+    *,
+    band: Optional[str] = None,                            # ← já vem do /risk/score
+    installment: Optional[Decimal] = None,                 # ← já vem do /risk/score
+    amount: Optional[Decimal] = None,                      # fallback p/ calcular PMT
+    term_months: Optional[int] = None,
+    monthly_rate: Optional[Decimal] = None,
+    features: Optional[Dict[str, Any]] = None,             # usa renda_media_6m se presente
+    request=None,                                          # fallback p/ buscar renda no OF
+    cpf: Optional[str] = None,
+    min_band: str = "D",
+    max_income_ratio: Decimal = Decimal("0.35"),
+) -> Dict[str, Any]:
+    """
+    Regras:
+      (1) Banda mínima: >= min_band (A melhor ... E pior)
+      (2) PMT <= max_income_ratio * renda_mensal
+    """
+    reasons: List[str] = []
+
+    # ----- SCORE/BAND -----
+    letter = _normalize_letter(band)
+    if letter is None:
+        reasons.append("band_indisponivel")
+    else:
+        want = _normalize_letter(min_band) or "D"
+        if _GRADE_ORDER.get(letter, 99) > _GRADE_ORDER.get(want, 99):
+            reasons.append(f"score_insuficiente(<{want})")
+
+    # ----- PARCELA (PMT) -----
+    try:
+        if installment is not None:
+            pmt = Decimal(str(installment)).quantize(Decimal("0.01"))
+        else:
+            if amount is None or term_months is None or monthly_rate is None:
+                raise FeatureBuildError("Parâmetros insuficientes para calcular a parcela")
+            pmt = _compute_installment(Decimal(str(amount)), int(term_months), Decimal(str(monthly_rate)))
+    except Exception as e:
+        raise FeatureBuildError(f"Não foi possível determinar a parcela: {e}")
+
+    # ----- RENDA -----
+    renda_mensal: Optional[Decimal] = None
+    if isinstance(features, dict) and "renda_media_6m" in features:
+        renda_mensal = Decimal(str(features["renda_media_6m"]))
+        # renda_mensal = Decimal("10000.00")
+    elif request is not None and cpf:
+        renda_mensal = _fetch_renda_media_6m_only(request=request, cpf=cpf)
+
+    if renda_mensal is None or renda_mensal <= 0:
+        reasons.append("renda_indisponivel_ou_zero")
+        renda_limite = Decimal("0")
+    else:
+        renda_limite = (renda_mensal * max_income_ratio).quantize(Decimal("0.01"))
+        if pmt >= renda_limite:
+            reasons.append("parcela_acima_35pct_renda")
+
+    eligible = (len(reasons) == 0)
+
+    return {
+        "eligible": bool(eligible),
+        "reasons": reasons,
+        "band": letter,
+        "installment": float(pmt),
+        "renda_mensal": float(renda_mensal or 0),
+        "thresholds": {
+            "min_band": _normalize_letter(min_band) or "D",
+            "max_income_ratio": float(max_income_ratio),
+            "renda_limite_35pct": float(renda_limite),
+        },
+    }
