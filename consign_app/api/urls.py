@@ -37,4 +37,7 @@ urlpatterns = [
          views.borrower_kyc_status, name='borrower_kyc_status'),
     path('borrowers/<str:borrower_id>/kyc/submit/',
          views.borrower_kyc_submit, name='borrower_kyc_submit'),
+     
+     path('offers/<str:offer_id>/accept/', views.offer_accept, name='offer_accept'),
+
 ]

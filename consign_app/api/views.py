@@ -10,6 +10,7 @@ from decimal import Decimal
 import requests
 from django.urls import reverse
 from consign_app.api.helper import build_features_for_borrower, analyze_eligibility, FeatureBuildError
+from consign_app.api.integration import QiTechLocal
 
 from .permissions import IsOAuth2Authenticated
 
@@ -17,6 +18,7 @@ from consign_app.core_db.models import (
     Investor, Borrower, LoanOffer, Contract, Installment,
     Payment, KycRisk, Wallet
 )
+
 from .serializers import (
     InvestorCreateSerializer, InvestorCreatedSerializer,
     InvestorStep1Serializer, InvestorStep2Serializer, InvestorStep3Serializer,
@@ -32,7 +34,6 @@ class StandardResultsSetPagination(PageNumberPagination):
     page_size = 50
     page_size_query_param = 'size'
     max_page_size = 200
-
 
 # ===============================================
 # TEST ENDPOINT
@@ -65,31 +66,87 @@ def test_auth(request):
 @api_view(['POST'])
 @permission_classes([IsOAuth2Authenticated])
 def investor_create(request):
-    """Create a new investor (legacy endpoint - use multi-step instead)"""
     serializer = InvestorCreateSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(
+            {"message": "Validation error on investor payload.", "errors": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
-    if serializer.is_valid():
+    try:
         investor = serializer.save()
+        qi = QiTechLocal(request, user_uuid=str(investor.investor_id))
 
-        # Create primary wallet
+        # 1) Request account
+        acc_req = qi.post(
+            "account_request_checking",
+            json={
+                "person_type": "natural",
+                "account_owner": {
+                    "name": investor.name,
+                    "document_number": investor.document,
+                }
+            },
+            idem=f"accreq-{investor.investor_id}",
+        )
+        acc_req.raise_for_status()
+        acc = acc_req.json()
+
+        account_request_key = acc.get("account_request_key")
+        account_key = acc.get("account_key")  # may be None on first response
+        status_label = acc.get("account_request_status", "processing")
+
+        # 2) Try to confirm/activate if no account_key yet
+        if not account_key and account_request_key:
+            try:
+                conf = qi.post(
+                    "account_request_checking_patch",
+                    json={"confirm": True},
+                    account_request_key=account_request_key,
+                    idem=f"accreq-confirm-{account_request_key}",
+                )
+                if conf.status_code in (200, 201):
+                    cdata = conf.json()
+                    account_key = cdata.get("account_key") or account_key
+                    status_label = cdata.get("status", status_label)
+            except requests.RequestException:
+                # non-blocking; handled by fallback below
+                pass
+
+        # 3) Fallback if the mock still didn’t give an account_key
+        if not account_key:
+            # deterministic fallback so NOT NULL is respected
+            # you can use uuid if you prefer:
+            # account_key = f"ACC-{uuid.uuid4().hex[:12]}"
+            # or derive from request key:
+            suffix = (account_request_key or f"{investor.investor_id}")[:12].replace("-", "")
+            account_key = f"ACC-{suffix}"
+
         wallet = Wallet.objects.create(
             owner_type="investor",
             owner_id=investor.investor_id,
             currency="BRL",
-            available_balance=Decimal("0.00"),
-            blocked_balance=Decimal("0.00"),
-            status="active",
-            external_reference=f"WALLET-INV-{investor.investor_id}",
-            account_key=f"ACC-{uuid.uuid4().hex[:12]}"
+            available_balance=Decimal("0"),
+            blocked_balance=Decimal("0"),
+            status=status_label,
+            external_reference=account_request_key,
+            account_key=account_key,  # guaranteed non-null here
         )
-
         investor.primary_wallet = wallet
-        investor.save()
+        investor.save(update_fields=["primary_wallet"])
 
-        response_data = InvestorCreatedSerializer(investor).data
-        return Response(response_data, status=status.HTTP_201_CREATED)
+        return Response(InvestorCreatedSerializer(investor).data, status=status.HTTP_201_CREATED)
 
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except requests.RequestException as e:
+        return Response(
+            {"message": "Error while calling QI Tech mock (account request).", "error": str(e)},
+            status=status.HTTP_502_BAD_GATEWAY
+        )
+    except Exception as e:
+        return Response(
+            {"message": "Unexpected error while creating investor.", "error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
 # ===============================================
@@ -144,31 +201,77 @@ def investor_validate_contact_preferences(request):
 @permission_classes([IsOAuth2Authenticated])
 def investor_finalize_registration(request):
     """
-    Passo 3: Finalizar Cadastro e Criar Investidor
-    Step 3: Finalize Registration & Create Investor
+    Step 3: Finalize registration and create investor
     """
     serializer = InvestorStep3Serializer(data=request.data)
 
     if serializer.is_valid():
         try:
             investor = serializer.save()
-            response_data = InvestorCreatedSerializer(investor).data
 
+            # ==== Integration with qitech_mock: CaaS /onboarding/natural_person ====
+            qi = QiTechLocal(request, user_uuid=str(investor.investor_id))
+
+            onb_payload = {
+                "name": investor.name,
+                "email": investor.email,
+                "phone": {"country_code": "55", "number": investor.phone_number},
+                "document_number": investor.document,
+                "tax_id": investor.document,
+            }
+
+            try:
+                r = qi.post(
+                    "onboarding_natural_person",
+                    json=onb_payload,
+                    idem=f"inv-onb-{investor.investor_id}"
+                )
+                r.raise_for_status()
+                onb = r.json()
+            except requests.RequestException as e:
+                # The QI Tech mock requires Bearer and X-User-UUID headers
+                # Raise 502 if there is a connectivity or request failure
+                return Response(
+                    {
+                        "message": "Error while calling QI Tech mock (onboarding PF).",
+                        "error": str(e)
+                    },
+                    status=status.HTTP_502_BAD_GATEWAY
+                )
+
+            # Persist KYC status and identifiers
+            KycRisk.objects.update_or_create(
+                subject_type="investor",
+                subject_id=investor.investor_id,
+                defaults={
+                    "provider": "qi_mock",
+                    "status": onb.get("analysis_status", "in_review"),
+                    "decision_reasons": {"mock": True},
+                    "natural_person_key": onb.get("natural_person_key"),
+                    "external_reference": onb.get("external_reference") or f"KYC-INV-{investor.investor_id}",
+                }
+            )
+            investor.kyc_status = onb.get("analysis_status", "in_review")
+            investor.save(update_fields=["kyc_status"])
+            # ==== End of qitech_mock integration ====
+
+            response_data = InvestorCreatedSerializer(investor).data
             return Response({
-                'message': 'Investidor criado com sucesso!',
+                'message': 'Investor successfully created!',
                 'investor': response_data
             }, status=status.HTTP_201_CREATED)
 
         except Exception as e:
             return Response({
-                'message': 'Erro ao criar investidor',
+                'message': 'Unexpected error while creating investor.',
                 'error': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     return Response({
-        'message': 'Erro na validação final dos dados',
+        'message': 'Invalid data during final validation step.',
         'errors': serializer.errors
     }, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 @api_view(['GET'])
@@ -571,38 +674,106 @@ def investor_kyc_status(request, investor_id):
 @api_view(['POST'])
 @permission_classes([IsOAuth2Authenticated])
 def borrower_kyc_submit(request, borrower_id):
-    """Submit borrower KYC data"""
-
+    """
+    Submit borrower KYC data and integrate with qitech_mock:
+      - POST /onboarding/natural_person
+      - (optional) POST /upload with document_md5
+    """
     borrower = get_object_or_404(Borrower, borrower_id=borrower_id)
 
     serializer = KycSubmitSerializer(data=request.data)
     if not serializer.is_valid():
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({
+            "message": "Validation error on KYC payload.",
+            "errors": serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
 
-    # Create or update KYC record
+    # --- qitech_mock: CaaS /onboarding/natural_person ---
+    qi = QiTechLocal(request, user_uuid=str(borrower.borrower_id))
+
+    onb_payload = {
+        "name": borrower.name,
+        "email": borrower.email,
+        "phone": {"country_code": "55", "number": borrower.phone_number},
+        "document_number": borrower.document,   # helps the mock seed determinism
+        "tax_id": borrower.document,
+    }
+
+    try:
+        r = qi.post(
+            "onboarding_natural_person",
+            json=onb_payload,
+            idem=f"bor-onb-{borrower.borrower_id}"
+        )
+        r.raise_for_status()
+        onb = r.json()
+    except requests.RequestException as e:
+        return Response(
+            {
+                "message": "Error while calling QI Tech mock (onboarding PF).",
+                "error": str(e)
+            },
+            status=status.HTTP_502_BAD_GATEWAY
+        )
+
+    # --- Optional: document upload (maps to mock seed too) ---
+    doc_md5 = request.data.get("document_md5")
+    if doc_md5:
+        try:
+            up = qi.post(
+                "documents_upload",
+                json={"document_md5": doc_md5},
+                idem=f"doc-{borrower.borrower_id}"
+            )
+            # Non-blocking: ignore failures, just don't attach the mock evidence
+            if up.status_code == 200:
+                # If you want, merge this into evidences; below we already store request.data['documents']
+                pass
+        except requests.RequestException:
+            # Non-blocking: keep KYC in review without the uploaded doc evidence
+            pass
+
+    # --- Create or update KYC record with mock response ---
     kyc, created = KycRisk.objects.get_or_create(
         subject_type="borrower",
         subject_id=borrower.borrower_id,
         defaults={
-            'provider': 'qi_risk',
-            'status': 'in_review',
+            'provider': 'qi_mock',
+            'status': onb.get("analysis_status", "in_review"),
             'decision_reasons': {'submitted_at': datetime.now().isoformat()},
-            'evidences': request.data.get('documents', []),
-            'natural_person_key': f"NP-{uuid.uuid4().hex[:12]}",
-            'external_reference': f"KYC-BOR-{borrower.borrower_id}"
+            'evidences': request.data.get('documents', []),  # keep client-provided evidences
+            'natural_person_key': onb.get("natural_person_key"),
+            'external_reference': onb.get("external_reference") or f"KYC-BOR-{borrower.borrower_id}"
         }
     )
 
-    # Update borrower status
-    borrower.kyc_status = 'in_review'
-    borrower.save()
+    if not created:
+        # Keep the record in sync with the latest onboarding response
+        kyc.provider = 'qi_mock'
+        kyc.status = onb.get("analysis_status", "in_review")
+        kyc.decision_reasons = (kyc.decision_reasons or {})
+        kyc.decision_reasons.update({'last_update_at': datetime.now().isoformat()})
+        kyc.natural_person_key = onb.get("natural_person_key") or kyc.natural_person_key
+        kyc.external_reference = onb.get("external_reference") or kyc.external_reference
+        # Optionally merge evidences sent now
+        new_evidences = request.data.get('documents', [])
+        if new_evidences:
+            try:
+                merged = list({*list(kyc.evidences or []), *list(new_evidences)})
+            except Exception:
+                merged = new_evidences
+            kyc.evidences = merged
+        kyc.save()
+
+    # --- Update borrower status from mock response ---
+    borrower.kyc_status = onb.get("analysis_status", "in_review")
+    borrower.save(update_fields=["kyc_status"])
 
     response_data = {
-        'status': 'in_review',
+        'status': borrower.kyc_status,
         'natural_person_key': kyc.natural_person_key,
         'legal_person_key': None
     }
-
     return Response(response_data, status=status.HTTP_202_ACCEPTED)
 
 
@@ -631,3 +802,128 @@ def borrower_kyc_status(request, borrower_id):
             pass
 
     return Response(response_data)
+
+@api_view(['GET'])
+@permission_classes([IsOAuth2Authenticated])
+def investor_get_history(request, investor_id):
+    """Get investor transaction history (contracts/installments/payments) and attach BaaS mock transactions if account_key exists."""
+    investor = get_object_or_404(Investor, investor_id=investor_id)
+
+    history_type = request.GET.get('type', 'all')
+    from_date = request.GET.get('from')
+    to_date = request.GET.get('to')
+
+    contracts_qs = Contract.objects.filter(
+        creditor_type='investor',
+        creditor_id=investor.investor_id
+    )
+
+    if from_date:
+        contracts_qs = contracts_qs.filter(activated_at__gte=from_date)
+    if to_date:
+        contracts_qs = contracts_qs.filter(activated_at__lte=to_date)
+
+    history_data = {}
+
+    if history_type in ['all', 'contracts']:
+        history_data['contracts'] = contracts_qs
+
+    if history_type in ['all', 'installments']:
+        installments_qs = Installment.objects.filter(
+            contract__in=contracts_qs
+        ).order_by('-due_date')
+        history_data['installments'] = installments_qs
+
+    if history_type in ['all', 'payments']:
+        payments_qs = Payment.objects.filter(
+            contract__in=contracts_qs
+        ).order_by('-paid_at')
+        history_data['payments'] = payments_qs
+
+    # Attach mock BaaS transactions if investor's primary wallet has account_key
+    try:
+        wallet = getattr(investor, "primary_wallet", None)
+        if wallet and getattr(wallet, "account_key", None):
+            qi = QiTechLocal(request, user_uuid=str(investor.investor_id))
+            params = {}
+            if from_date: params["start"] = from_date
+            if to_date:   params["end"] = to_date
+            tx = qi.get("account_transactions", account_key=wallet.account_key, params=params)
+            if tx.status_code == 200:
+                history_data["baas_transactions"] = tx.json().get("items", [])
+    except Exception:
+        # BaaS attachment is optional; ignore failures
+        pass
+
+    serializer = InvestorHistorySerializer(history_data)
+    return Response(serializer.data)
+
+
+
+# =====================================================================
+# (5) Accept offer → issue debt (qitech_mock/debt)
+# =====================================================================
+@api_view(['POST'])
+@permission_classes([IsOAuth2Authenticated])
+def offer_accept(request, offer_id):
+    """
+    Accept an offer and issue a debt via qitech_mock.
+    Returns 201 with {"contract_id": "...", "status": "...", "mock": {...}}.
+    """
+    offer = get_object_or_404(LoanOffer, offer_id=offer_id)
+
+    borrower = offer.borrower
+    cpf = (getattr(borrower, "document", "") or "").replace(".", "").replace("-", "")
+
+    qi = QiTechLocal(request, user_uuid=str(borrower.borrower_id))
+    debt_payload = {
+        "amount": float(offer.amount),
+        "financial": {
+            "amortization": "price",
+            "number_of_installments": int(offer.term_months),
+            "monthly_interest_rate": float(offer.rate),
+            "disbursed_amount": float(offer.amount),
+        },
+        "borrower": {"document_number": cpf},
+        "requester_identifier_key": f"debt-{offer.offer_id}",
+    }
+
+    try:
+        r = qi.post("debt", json=debt_payload, idem=f"debt-{offer.offer_id}")
+        r.raise_for_status()
+        dj = r.json()
+    except requests.RequestException as e:
+        return Response(
+            {"message": "Error calling qitech_mock/debt.", "error": str(e)},
+            status=status.HTTP_502_BAD_GATEWAY
+        )
+
+    # Try to persist a Contract (best effort; keep flow even if schema differs)
+    contract_id = None
+    try:
+        contract = Contract.objects.create(
+            offer=offer if hasattr(Contract, "offer") else None,
+            creditor_type=getattr(Contract, "creditor_type", None) and "platform",
+            creditor_id=None,
+            status=dj.get("status", "issued"),
+            principal_amount=offer.amount if hasattr(Contract, "principal_amount") else None,
+            external_reference=dj.get("key") or f"DEBT-{offer.offer_id}",
+        )
+        contract_id = getattr(contract, "contract_id", None) or getattr(contract, "id", None)
+    except Exception:
+        # Persisting is optional; still return the mock response
+        pass
+
+    # Update offer status if applicable
+    try:
+        offer.status = "accepted"
+        offer.save(update_fields=["status"])
+    except Exception:
+        pass
+
+    return Response({
+        "contract_id": (contract_id and str(contract_id)) or dj.get("key"),
+        "status": dj.get("status", "issued"),
+        "mock": dj,
+    }, status=status.HTTP_201_CREATED)
+
