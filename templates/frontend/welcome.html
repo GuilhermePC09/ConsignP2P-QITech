@@ -23,10 +23,24 @@
                         <p><strong>Email:</strong> {{ user_context.email }}</p>
                         {% if user_type == 'borrower' %}
                             <p><strong>ID:</strong> {{ user_context.borrower_id }}</p>
-                            <p><strong>Status KYC:</strong> {{ user_context.kyc_status|default:"Pendente" }}</p>
+                            <p><strong>Status KYC:</strong> 
+                                {% if user_context.kyc_status == 'none' %}Não iniciado
+                                {% elif user_context.kyc_status == 'pending' %}Em análise
+                                {% elif user_context.kyc_status == 'approved' %}Aprovado
+                                {% elif user_context.kyc_status == 'rejected' %}Rejeitado
+                                {% else %}{{ user_context.kyc_status|default:"Não iniciado" }}
+                                {% endif %}
+                            </p>
                         {% elif user_type == 'investor' %}
                             <p><strong>ID:</strong> {{ user_context.investor_id }}</p>
-                            <p><strong>Status KYC:</strong> {{ user_context.kyc_status|default:"Pendente" }}</p>
+                            <p><strong>Status KYC:</strong> 
+                                {% if user_context.kyc_status == 'none' %}Não iniciado
+                                {% elif user_context.kyc_status == 'pending' %}Em análise
+                                {% elif user_context.kyc_status == 'approved' %}Aprovado
+                                {% elif user_context.kyc_status == 'rejected' %}Rejeitado
+                                {% else %}{{ user_context.kyc_status|default:"Não iniciado" }}
+                                {% endif %}
+                            </p>
                         {% endif %}
                     </div>
                     <a href="{% url 'frontend:logout' %}" class="btn btn-secondary" style="margin-left: 16px;">
@@ -85,6 +99,7 @@
             </a>
         </div>
 
+        {% if is_investor or user_type == 'both' %}
         <div class="upload-item">
             <div class="left">
                 <div class="title">💰 Ofertas Disponíveis</div>
@@ -94,6 +109,7 @@
                 Ver Ofertas →
             </a>
         </div>
+        {% endif %}
 
     </div>
 </div>

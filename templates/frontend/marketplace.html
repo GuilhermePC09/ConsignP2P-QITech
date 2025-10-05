@@ -1,77 +1,57 @@
 {% extends 'frontend/base.html' %}
 {% load marketplace_filters %}
 
-{% block title %}QInvest — Ofertas Disponíveis{% endblock %}
-
-{% block header %}
-<header style="background:#fff;border-bottom:1px solid #EEF2F7;position:sticky;top:0;z-index:10">
-    <div style="max-width:1100px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:16px;justify-content:space-between">
-        <div style="display:flex;align-items:center;gap:14px">
-            <div style="font-weight:800;font-size:18px;color:#0E4BD2">QInvest</div>
-            <nav style="display:flex;gap:8px;align-items:center">
-                <a href="{% url 'frontend:marketplace' %}" class="btn btn-secondary" style="padding:8px 12px;font-weight:600">Marketplace</a>
-                <a href="#" class="btn btn-outline" style="padding:8px 12px;font-weight:600">Minhas Posições</a>
-                <a href="#" class="btn btn-outline" style="padding:8px 12px;font-weight:600">Mercado Secundário</a>
-                <a href="#" class="btn btn-outline" style="padding:8px 12px;font-weight:600">Histórico</a>
-                <a href="#" class="btn btn-outline" style="padding:8px 12px;font-weight:600">Configurações</a>
-            </nav>
-        </div>
-        <div style="display:grid;place-items:center;width:36px;height:36px;border-radius:999px;background:#EAF2FE;color:#0E4BD2;font-weight:700">👤</div>
-    </div>
-</header>
-{% endblock %}
+{% block title %}QInvest — Marketplace de Ofertas{% endblock %}
 
 {% block content %}
-<div class="wrapper" style="max-width:1100px">
-    <h1 style="font-size:28px;margin-top:24px;margin-bottom:8px">Marketplace de Ofertas</h1>
-    <p class="lead" style="text-align:left;margin-left:0">Explore oportunidades de investimento em crédito consignado P2P</p>
+<section class="wrapper" style="max-width:1100px; padding-bottom:32px;">
+    <div style="display:flex;align-items:end;justify-content:space-between;gap:12px">
+        <div>
+            <h1 style="margin-top:24px;margin-bottom:6px">Marketplace de Ofertas</h1>
+            <p class="lead" style="text-align:left;margin-left:0">Explore oportunidades de investimento em crédito consignado P2P</p>
+        </div>
+        <div style="text-align:right">
+            <div style="font-size:14px;color:#64748B;margin-bottom:4px">Ofertas disponíveis</div>
+            <div style="font-weight:800;font-size:24px;color:var(--brand-600)">{{ offers.paginator.count }}</div>
+        </div>
+    </div>
 
-    <!-- Filters Section -->
-    <div class="card" style="margin-top:16px">
+    <!-- Filters Card -->
+    <div id="filters" class="card card-spaced" style="margin-top:16px">
         <header style="display:flex;align-items:center;gap:10px;justify-content:space-between">
             <div style="display:flex;align-items:center;gap:10px"><span style="font-weight:700">Filtros</span></div>
-            <div style="font-size:12px;color:#64748B"></div>
         </header>
         <div class="body">
             <form method="GET" id="filter-form">
+                <!-- Row 1: Value Range -->
                 <div class="row">
                     <div class="field">
                         <label class="label" for="vmin">Valor Mínimo</label>
-                        <div class="input"><span class="prefix">R$</span><input id="vmin" name="valor_min" placeholder="5.000" value="{{ request.GET.valor_min }}"/></div>
+                        <div class="input"><span class="prefix">R$</span><input id="vmin" name="valor_min" placeholder="500,00" value="{{ request.GET.valor_min }}"/></div>
                     </div>
                     <div class="field">
                         <label class="label" for="vmax">Valor Máximo</label>
-                        <div class="input"><span class="prefix">R$</span><input id="vmax" name="valor_max" placeholder="100.000" value="{{ request.GET.valor_max }}"/></div>
+                        <div class="input"><span class="prefix">R$</span><input id="vmax" name="valor_max" placeholder="20.000,00" value="{{ request.GET.valor_max }}"/></div>
                     </div>
                 </div>
 
+                <!-- Row 2: Term Range -->
                 <div class="row">
                     <div class="field">
-                        <label class="label" for="pmin">Prazo Mínimo</label>
+                        <label class="label" for="pmin">Prazo Mínimo (meses)</label>
                         <div class="input">
-                            <select id="pmin" name="prazo_min">
-                                <option value="">Selecione</option>
-                                <option value="1" {% if request.GET.prazo_min == "1" %}selected{% endif %}>1 mês</option>
-                                <option value="6" {% if request.GET.prazo_min == "6" %}selected{% endif %}>6 meses</option>
-                                <option value="12" {% if request.GET.prazo_min == "12" %}selected{% endif %}>12 meses</option>
-                                <option value="24" {% if request.GET.prazo_min == "24" %}selected{% endif %}>24 meses</option>
-                            </select>
+                            <input type="number" id="pmin" name="prazo_min" placeholder="1" min="1" max="96" value="{{ request.GET.prazo_min }}"/>
                         </div>
                     </div>
                     <div class="field">
-                        <label class="label" for="pmax">Prazo Máximo</label>
+                        <label class="label" for="pmax">Prazo Máximo (meses)</label>
                         <div class="input">
-                            <select id="pmax" name="prazo_max">
-                                <option value="">Selecione</option>
-                                <option value="12" {% if request.GET.prazo_max == "12" %}selected{% endif %}>12 meses</option>
-                                <option value="24" {% if request.GET.prazo_max == "24" %}selected{% endif %}>24 meses</option>
-                                <option value="36" {% if request.GET.prazo_max == "36" %}selected{% endif %}>36 meses</option>
-                                <option value="48" {% if request.GET.prazo_max == "48" %}selected{% endif %}>48 meses</option>
-                            </select>
+                            <input type="number" id="pmax" name="prazo_max" placeholder="96" min="1" max="96" value="{{ request.GET.prazo_max }}"/>
                         </div>
                     </div>
                 </div>
 
+                <!-- Row 3: Rate Range and Sort -->
                 <div class="row">
                     <div class="field">
                         <label class="label" for="tmin">Taxa Mínima (%)</label>
@@ -83,19 +63,10 @@
                     </div>
                 </div>
 
+                <!-- Row 4: Risk and Sort -->
                 <div class="row">
                     <div class="field">
-                        <label class="label" for="sort">Ordenar por</label>
-                        <div class="input">
-                            <select id="sort" name="ordenar">
-                                <option value="taxa_desc" {% if request.GET.ordenar == "taxa_desc" %}selected{% endif %}>Maior taxa</option>
-                                <option value="taxa_asc" {% if request.GET.ordenar == "taxa_asc" %}selected{% endif %}>Menor taxa</option>
-                                <option value="recente" {% if request.GET.ordenar == "recente" %}selected{% endif %}>Mais recente</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="field">
-                        <label class="label">Risco do Investidor</label>
+                        <label class="label">Nível de Risco</label>
                         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
                             <button type="button" class="btn btn-outline risk-filter" data-risk="baixo" 
                                     style="border-color:#10B981;color:#059669;background:{% if 'baixo' in request.GET.risco %}#E6F9ED{% else %}transparent{% endif %}">Baixo</button>
@@ -106,21 +77,40 @@
                         </div>
                         <input type="hidden" name="risco" id="risco-input" value="{{ request.GET.risco }}">
                     </div>
+                    <div class="field">
+                        <label class="label" for="sort">Ordenar por</label>
+                        <div class="input">
+                            <select id="sort" name="ordenar">
+                                <option value="taxa_desc" {% if request.GET.ordenar == "taxa_desc" %}selected{% endif %}>Maior taxa</option>
+                                <option value="taxa_asc" {% if request.GET.ordenar == "taxa_asc" %}selected{% endif %}>Menor taxa</option>
+                                <option value="recente" {% if request.GET.ordenar == "recente" %}selected{% endif %}>Mais recente</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="form-actions" style="padding-top:8px">
+                <div class="form-actions" style="padding-top:16px; display:flex; justify-content:flex-end; gap:10px;">
+                    <a class="btn btn-secondary" href="{% url 'frontend:marketplace' %}">Limpar Filtros</a>
                     <button type="submit" class="btn btn-primary">Aplicar Filtros</button>
-                    <a class="btn btn-secondary" href="{% url 'frontend:marketplace' %}">Limpar</a>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Offers Grid -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:18px">
+    <div class="marketplace-grid">
         {% for offer in offers %}
         <div class="card">
             <div class="body">
+                <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">
+                    <div style="font-size:14px;color:#64748B;font-weight:600">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:text-bottom;margin-right:4px">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        {{ offer.borrower.name }}
+                    </div>
+                </div>
                 <div style="display:flex;justify-content:space-between;align-items:start">
                     <div style="font-weight:800;font-size:22px">R$ {{ offer.amount|format_currency }}</div>
                     <div style="color:#16A34A;font-weight:700;font-size:18px">{{ offer.rate|floatformat:1 }}%</div>
@@ -151,7 +141,7 @@
                     {% if offer.status == 'closed' or offer.status == 'funded' %}
                         <a class="btn btn-secondary" href="#" style="pointer-events:none;opacity:.55">Oferta Encerrada</a>
                     {% else %}
-                        <a class="btn btn-primary" href="#">Ver Detalhes da Oferta</a>
+                        <a class="btn btn-primary" href="{% url 'frontend:offer_details' offer.offer_id %}">Detalhes da Oferta</a>
                     {% endif %}
                 </div>
             </div>
@@ -168,22 +158,45 @@
 
     <!-- Pagination -->
     {% if offers.has_other_pages %}
-    <div style="display:flex;align-items:center;justify-content:space-between;margin:20px 0">
-        {% if offers.has_previous %}
-            <a href="?page={{ offers.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="btn btn-secondary">← Anterior</a>
-        {% else %}
-            <span class="btn btn-secondary" style="opacity:0.5">← Anterior</span>
-        {% endif %}
-        
-        <div style="color:#64748B;font-size:14px">
-            Mostrando {{ offers.start_index }}–{{ offers.end_index }} de {{ offers.paginator.count }} ofertas
+    <div class="card card-spaced" style="margin-bottom:var(--space-lg)">
+        <div class="body" style="padding:var(--space-md)">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:16px">
+                {% if offers.has_previous %}
+                    <a href="?page={{ offers.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="btn btn-secondary">← Anterior</a>
+                {% else %}
+                    <span class="btn btn-secondary" style="opacity:0.5;cursor:not-allowed">← Anterior</span>
+                {% endif %}
+                
+                <div style="display:flex;align-items:center;gap:12px">
+                    <div style="color:#64748B;font-size:14px">
+                        Mostrando {{ offers.start_index }}–{{ offers.end_index }} de {{ offers.paginator.count }} ofertas
+                    </div>
+                    
+                    <!-- Page numbers -->
+                    <div style="display:flex;align-items:center;gap:4px">
+                        {% for num in offers.paginator.page_range %}
+                            {% if num == offers.number %}
+                                <span class="btn btn-primary" style="padding:8px 12px;font-size:14px">{{ num }}</span>
+                            {% elif num > offers.number|add:'-3' and num < offers.number|add:'3' %}
+                                <a href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                                   class="btn btn-secondary" style="padding:8px 12px;font-size:14px">{{ num }}</a>
+                            {% elif num == 1 or num == offers.paginator.num_pages %}
+                                <a href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                                   class="btn btn-secondary" style="padding:8px 12px;font-size:14px">{{ num }}</a>
+                            {% elif num == 2 or num == offers.paginator.num_pages|add:'-1' %}
+                                <span style="color:#64748B;padding:8px 4px">...</span>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                {% if offers.has_next %}
+                    <a href="?page={{ offers.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="btn btn-secondary">Próxima →</a>
+                {% else %}
+                    <span class="btn btn-secondary" style="opacity:0.5;cursor:not-allowed">Próxima →</span>
+                {% endif %}
+            </div>
         </div>
-        
-        {% if offers.has_next %}
-            <a href="?page={{ offers.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="btn btn-secondary">Próxima →</a>
-        {% else %}
-            <span class="btn btn-secondary" style="opacity:0.5">Próxima →</span>
-        {% endif %}
     </div>
     {% endif %}
 </div>
@@ -227,4 +240,5 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+</section>
 {% endblock %}

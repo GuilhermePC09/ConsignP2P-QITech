@@ -157,7 +157,7 @@ class LoanSimulationForm(forms.Form):
             MaxValueValidator(96, message="Prazo máximo é 96 meses")
         ],
         widget=forms.NumberInput(attrs={
-            'placeholder': '3',
+            'placeholder': '1',
             'min': '1',
             'max': '96',
             'required': True,
@@ -206,3 +206,114 @@ class BorrowerLoginForm(forms.Form):
         }),
         label='Senha'
     )
+
+
+class InvestorRegistrationForm(forms.Form):
+    """Form for investor registration"""
+    TYPE_CHOICES = [
+        ('pf', 'Pessoa Física'),
+        ('pj', 'Pessoa Jurídica'),
+    ]
+
+    user_type = forms.ChoiceField(
+        choices=TYPE_CHOICES,
+        widget=forms.Select(attrs={
+            'required': True
+        }),
+        label='Tipo de Pessoa'
+    )
+
+    first_name = forms.CharField(
+        max_length=30,
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Digite seu primeiro nome',
+            'required': True
+        }),
+        label='Primeiro Nome'
+    )
+
+    last_name = forms.CharField(
+        max_length=30,
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Digite seu sobrenome',
+            'required': True
+        }),
+        label='Sobrenome'
+    )
+
+    document = forms.CharField(
+        max_length=18,
+        widget=forms.TextInput(attrs={
+            'placeholder': '000.000.000-00 ou 00.000.000/0001-00',
+            'inputmode': 'numeric',
+            'required': True
+        }),
+        label='CPF ou CNPJ'
+    )
+
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={
+            'placeholder': 'seu@email.com',
+            'required': True
+        }),
+        label='E-mail'
+    )
+
+    phone_number = forms.CharField(
+        max_length=20,
+        widget=forms.TextInput(attrs={
+            'placeholder': '(11) 99999-9999',
+            'required': True
+        }),
+        label='Telefone'
+    )
+
+    password1 = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'placeholder': 'Digite sua senha',
+            'required': True
+        }),
+        label='Senha'
+    )
+
+    password2 = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'placeholder': 'Confirme sua senha',
+            'required': True
+        }),
+        label='Confirmar Senha'
+    )
+
+    def clean_document(self):
+        document = self.cleaned_data.get('document')
+        user_type = self.cleaned_data.get('user_type')
+
+        if document and user_type:
+            # Remove formatting characters
+            clean_doc = ''.join(filter(str.isdigit, document))
+
+            if user_type == 'pf':
+                # CPF validation
+                if len(clean_doc) != 11:
+                    raise forms.ValidationError('CPF deve ter 11 dígitos')
+                if not validate_cpf(document):
+                    raise forms.ValidationError('CPF inválido')
+            elif user_type == 'pj':
+                # Basic CNPJ validation (14 digits)
+                if len(clean_doc) != 14:
+                    raise forms.ValidationError('CNPJ deve ter 14 dígitos')
+
+        return document
+
+    def clean_password2(self):
+        password1 = self.cleaned_data.get('password1')
+        password2 = self.cleaned_data.get('password2')
+        if password1 and password2 and password1 != password2:
+            raise forms.ValidationError('As senhas não conferem')
+        return password2
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email and User.objects.filter(email=email).exists():
+            raise forms.ValidationError('Este e-mail já está sendo usado')
+        return email

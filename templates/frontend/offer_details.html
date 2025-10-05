@@ -1,0 +1,185 @@
+{% extends 'frontend/base.html' %}
+{% load marketplace_filters %}
+
+{% block title %}QInvest — Detalhes da Oferta{% endblock %}
+
+{% block content %}
+<section class="wrapper" style="max-width:900px">
+    <!-- Back navigation -->
+    <div style="margin-bottom:20px">
+        <a href="{% url 'frontend:marketplace' %}" class="btn btn-secondary" style="display:inline-flex;align-items:center;gap:8px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15,18 9,12 15,6"/>
+            </svg>
+            Voltar ao Marketplace
+        </a>
+    </div>
+
+    <!-- Offer Header -->
+    <div class="card card-spaced">
+        <header>
+            <div style="display:flex;justify-content:space-between;align-items:start;gap:16px">
+                <div>
+                    <h2 style="margin-bottom:8px">Detalhes da Oferta de Crédito</h2>
+                    <div style="display:flex;align-items:center;gap:8px;color:#64748B;font-size:14px">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        Solicitante: {{ offer.borrower.name }}
+                    </div>
+                </div>
+                <div style="text-align:right">
+                    <div style="font-size:28px;font-weight:800;color:var(--brand-600)">R$ {{ offer.amount|format_currency }}</div>
+                    <div style="font-size:18px;font-weight:700;color:#16A34A">{{ offer.rate|floatformat:2 }}% a.m.</div>
+                </div>
+            </div>
+        </header>
+        <div class="body">
+            <!-- Status and Validity -->
+            <div style="display:flex;gap:16px;margin-bottom:24px">
+                <div>
+                    <span class="status-badge" style="
+                        {% if offer.status == 'open' %}background:#E6F9ED;color:#059669{% endif %}
+                        {% if offer.status == 'draft' %}background:#DBEAFE;color:#1D4ED8{% endif %}
+                        {% if offer.status == 'closed' or offer.status == 'funded' %}background:#F1F5F9;color:#6B7280{% endif %}
+                    ">
+                        {% if offer.status == 'open' %}✓ Oferta Disponível{% endif %}
+                        {% if offer.status == 'draft' %}⏳ Em Análise{% endif %}
+                        {% if offer.status == 'funded' %}💰 Financiado{% endif %}
+                        {% if offer.status == 'closed' %}❌ Encerrada{% endif %}
+                    </span>
+                </div>
+                {% if offer.valid_until %}
+                <div style="color:#64748B;font-size:14px">
+                    <strong>Válido até:</strong> {{ offer.valid_until|date:"d/m/Y" }}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Key Metrics Grid -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px">
+                <div class="card" style="background:#F8FAFC">
+                    <div class="body" style="padding:16px">
+                        <div style="font-size:12px;color:#64748B;margin-bottom:4px">PRAZO</div>
+                        <div style="font-size:20px;font-weight:700">{{ offer.term_months }} meses</div>
+                    </div>
+                </div>
+                <div class="card" style="background:#F8FAFC">
+                    <div class="body" style="padding:16px">
+                        <div style="font-size:12px;color:#64748B;margin-bottom:4px">CET ANUAL</div>
+                        <div style="font-size:20px;font-weight:700">{{ cet_anual|default:"-" }}%</div>
+                    </div>
+                </div>
+                <div class="card" style="background:#F8FAFC">
+                    <div class="body" style="padding:16px">
+                        <div style="font-size:12px;color:#64748B;margin-bottom:4px">NÍVEL DE RISCO</div>
+                        <div style="font-size:16px;font-weight:700;color:{{ risk_color }}">{{ risk_level }}</div>
+                    </div>
+                </div>
+                <div class="card" style="background:#F8FAFC">
+                    <div class="body" style="padding:16px">
+                        <div style="font-size:12px;color:#64748B;margin-bottom:4px">PAGAMENTO MENSAL</div>
+                        <div style="font-size:18px;font-weight:700">R$ {{ monthly_payment|floatformat:2 }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Borrower Information -->
+    <div class="card card-spaced">
+        <header>
+            <h3>Informações do Solicitante</h3>
+            <p>Dados do perfil e histórico de crédito</p>
+        </header>
+        <div class="body">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px">
+                <div>
+                    <div style="font-size:12px;color:#64748B;margin-bottom:4px">NOME COMPLETO</div>
+                    <div style="font-weight:600">{{ offer.borrower.name }}</div>
+                </div>
+                <div>
+                    <div style="font-size:12px;color:#64748B;margin-bottom:4px">SCORE DE CRÉDITO</div>
+                    <div style="font-weight:600;color:#16A34A">Alto</div>
+                </div>
+                <div>
+                    <div style="font-size:12px;color:#64748B;margin-bottom:4px">VÍNCULO EMPREGATÍCIO</div>
+                    <div style="font-weight:600">Ativo</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Risk Analysis -->
+    <div class="card card-spaced">
+        <header>
+            <h3>Análise de Risco</h3>
+            <p>Avaliação detalhada dos fatores de risco deste investimento</p>
+        </header>
+        <div class="body">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+                <div style="width:60px;height:60px;border-radius:50%;background:{{ risk_bg }};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;color:{{ risk_color }}">
+                    {% if risk_level == 'Baixo' %}A{% elif risk_level == 'Médio' %}B{% else %}C{% endif %}
+                </div>
+                <div>
+                    <div style="font-size:18px;font-weight:700;color:{{ risk_color }}">Risco {{ risk_level }}</div>
+                    <div style="font-size:14px;color:#64748B">
+                        {% if risk_level == 'Baixo' %}
+                            Baixa probabilidade de inadimplência
+                        {% elif risk_level == 'Médio' %}
+                            Risco moderado com retorno atrativo
+                        {% else %}
+                            Alto retorno com risco elevado
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px">
+                <div>
+                    <div style="font-size:12px;color:#64748B;margin-bottom:4px">GARANTIA</div>
+                    <div style="font-weight:600">Consignação em Folha</div>
+                </div>
+                <div>
+                    <div style="font-size:12px;color:#64748B;margin-bottom:4px">SEGURO</div>
+                    <div style="font-weight:600">Cobertura Inclusa</div>
+                </div>
+                <div>
+                    <div style="font-size:12px;color:#64748B;margin-bottom:4px">LIQUIDEZ</div>
+                    <div style="font-weight:600">{{ offer.term_months }} meses</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    {% if offer.status == 'open' %}
+    <div class="card card-spaced">
+        <div class="body" style="text-align:center">
+            <h3 style="margin-bottom:16px">Pronto para Investir?</h3>
+            <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+                <a href="#" class="btn btn-primary" style="padding:12px 24px">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px">
+                        <polyline points="9,11 12,14 22,4"/>
+                        <path d="M21,12v7a2,2,0,0,1-2,2H5a2,2,0,0,1-2-2V5a2,2,0,0,1,2-2h11"/>
+                    </svg>
+                    Aceitar Oferta
+                </a>
+                <a href="{% url 'frontend:marketplace' %}" class="btn btn-secondary" style="padding:12px 24px">Continuar Pesquisando</a>
+            </div>
+            <div style="margin-top:12px;font-size:12px;color:#64748B">
+                Ao aceitar, você será direcionado para finalizar o investimento
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card card-spaced">
+        <div class="body" style="text-align:center">
+            <h3 style="margin-bottom:16px;color:#64748B">Oferta Não Disponível</h3>
+            <a href="{% url 'frontend:marketplace' %}" class="btn btn-secondary">Voltar ao Marketplace</a>
+        </div>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

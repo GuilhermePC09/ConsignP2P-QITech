@@ -110,7 +110,7 @@ class InvestorUserRegistrationSerializer(UserRegistrationSerializer):
         investor_data.update({
             'user': user,
             'type': 'pf' if len(investor_data['document']) == 11 else 'pj',
-            'kyc_status': 'pending',
+            'kyc_status': 'none',  # Default status, becomes 'pending' when documents are submitted
             'status': 'active',
             'email': user.email,  # sync with user email
         })
@@ -175,7 +175,7 @@ class BorrowerUserRegistrationSerializer(UserRegistrationSerializer):
         borrower_data = validated_data.copy()
         borrower_data.update({
             'user': user,
-            'kyc_status': 'pending',
+            'kyc_status': 'none',  # Default status, becomes 'pending' when documents are submitted
             'credit_status': 'pending',
             'email': user.email,  # sync with user email
         })

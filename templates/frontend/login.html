@@ -2,125 +2,66 @@
 
 {% block title %}QInvest — Login{% endblock %}
 
-{% block header %}
-<div class="header">
-    <div class="title">
-        <span style="display:grid;place-items:center;width:28px;height:28px;border-radius:999px;background:var(--brand-50);color:var(--brand-700)">
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="11" width="18" height="10" rx="2"/>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-            </svg>
-        </span>
-        <div>
-            <div>Login</div>
-            <div class="subtitle">Acesse sua conta</div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
 {% block content %}
 <div class="wrapper">
-    {% if login_success %}
-        <div class="card" style="text-align: center;">
-            <div style="width:80px;height:80px;border-radius:999px;display:grid;place-items:center;overflow:hidden;margin:0 auto 24px;background: linear-gradient(135deg, #10B981, #059669); box-shadow:0 10px 20px rgba(16,185,129,.2)">
-                <svg style="width:32px;height:32px;color:#fff" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M20 6L9 17l-5-5"/>
-                </svg>
-            </div>
-            
-            <header>
-                <h2>Bem-vindo de volta!</h2>
-                <p>Login realizado com sucesso. Você já pode acessar sua conta QInvest.</p>
-            </header>
-            
-            <div class="body">
-                <div style="margin: 20px 0; padding: 20px; background: var(--ink-50); border-radius: 12px; text-align: left;">
-                    <h3 style="margin-bottom: 16px; color: var(--ink-700);">Suas informações</h3>
-                    <div style="font-size: 14px; color: var(--ink-600); line-height: 1.5;">
-                        <div><strong>Nome:</strong> {{ user.first_name }} {{ user.last_name }}</div>
-                        <div><strong>Email:</strong> {{ user.email }}</div>
-                        {% if user_profile %}
-                            <div><strong>CPF:</strong> {{ user_profile.document }}</div>
-                            <div><strong>Status:</strong> {{ user_profile.kyc_status }}</div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-actions">
-                <a href="{% url 'frontend:welcome' %}" class="btn btn-primary">Acessar Painel →</a>
-                <a href="{% url 'frontend:home' %}" class="btn btn-secondary">Voltar ao Início</a>
-            </div>
-        </div>
-    {% else %}
-        {% if form.non_field_errors %}
-            <div style="margin-bottom: 20px; padding: 15px; border-radius: 12px; background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA;">
-                {% for error in form.non_field_errors %}{{ error }}{% endfor %}
-            </div>
-        {% endif %}
-
-        <div class="card" role="form" aria-labelledby="login-title">
-            <header>
-                <h2 id="login-title">Entrar na sua conta</h2>
-                <p>Digite suas credenciais para acessar o QInvest</p>
-            </header>
-            <div class="body">
-                <form method="post" id="login-form">
-                    {% csrf_token %}
-                    
-                    <div class="field">
-                        <label class="label" for="{{ form.username.id_for_label }}">CPF ou Email *</label>
-                        <div class="input">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                                <polyline points="22,6 12,13 2,6"/>
-                            </svg>
-                            {{ form.username }}
-                        </div>
-                    </div>
-
-                    <div class="field">
-                        <label class="label" for="{{ form.password.id_for_label }}">Senha *</label>
-                        <div class="input has-toggle">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <rect x="3" y="11" width="18" height="10" rx="2"/>
-                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                            </svg>
-                            {{ form.password }}
-                            <button type="button" class="password-toggle" id="toggle-login-pwd" aria-label="Mostrar senha">
-                                <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                    <circle cx="12" cy="12" r="3"/>
-                                </svg>
-                                <svg class="eye-off-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
-                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                                    <line x1="1" y1="1" x2="23" y2="23"/>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="form-actions">
-                <button type="button" class="btn btn-secondary" onclick="goBack()">← Voltar</button>
-                <button type="submit" form="login-form" class="btn btn-primary">Entrar →</button>
-            </div>
-        </div>
-        
-        <div style="text-align: center; margin-top: 20px; color: var(--ink-600);">
-            <p>Ainda não tem uma conta? 
-                <a href="{% url 'frontend:register' %}" style="color: var(--brand-600); text-decoration: none; font-weight: 500;">Criar conta</a>
-            </p>
+    {% if form.non_field_errors %}
+        <div style="margin-bottom: 20px; padding: 15px; border-radius: 12px; background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA;">
+            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
         </div>
     {% endif %}
+
+    <div class="card" role="form" aria-labelledby="login-title">
+        <header>
+            <h2 id="login-title">Entrar na sua conta</h2>
+            <p>Digite suas credenciais para acessar o QInvest</p>
+        </header>
+        <div class="body">
+            <form method="post" id="login-form">
+                {% csrf_token %}
+                
+                <div class="field">
+                    <label class="label" for="{{ form.username.id_for_label }}">CPF ou Email *</label>
+                    <div class="input">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                            <polyline points="22,6 12,13 2,6"/>
+                        </svg>
+                        {{ form.username }}
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label" for="{{ form.password.id_for_label }}">Senha *</label>
+                    <div class="input has-toggle">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="10" rx="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                        {{ form.password }}
+                        <button type="button" class="password-toggle" id="toggle-login-pwd" aria-label="Mostrar senha">
+                            <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            <svg class="eye-off-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                                <line x1="1" y1="1" x2="23" y2="23"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="form-actions">
+            <button type="button" class="btn btn-secondary" onclick="goBack()">← Voltar</button>
+            <button type="submit" form="login-form" class="btn btn-primary">Entrar →</button>
+        </div>
+    </div>
     
-    <div class="secure-note">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="11" width="18" height="10" rx="2"/>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-        </svg>
-        <span>Seus dados estão seguros e protegidos</span>
+    <div style="text-align: center; margin-top: 20px; color: var(--ink-600);">
+        <p>Ainda não tem uma conta? 
+            <a href="{% url 'frontend:register_choice' %}" style="color: var(--brand-600); text-decoration: none; font-weight: 500;">Criar conta</a>
+        </p>
     </div>
 </div>
 

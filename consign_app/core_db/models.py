@@ -27,8 +27,8 @@ class Investor(StampMixin):
         max_length=32, db_index=True)           # CPF/CNPJ
     email = models.EmailField(max_length=255, blank=True)
     phone_number = models.CharField(max_length=32, blank=True)
-    # pending|approved|rejected
-    kyc_status = models.CharField(max_length=32, blank=True)
+    # none|pending|approved|rejected
+    kyc_status = models.CharField(max_length=32, blank=True, default="none")
     suitability_profile = models.CharField(max_length=64, blank=True)
     preferred_payout_method = models.CharField(
         max_length=16, blank=True)  # pix|ted|wallet
@@ -50,7 +50,7 @@ class Borrower(StampMixin):
     document = models.CharField(max_length=32, db_index=True)           # CPF
     email = models.EmailField(max_length=255, blank=True)
     phone_number = models.CharField(max_length=32, blank=True)
-    kyc_status = models.CharField(max_length=32, blank=True)
+    kyc_status = models.CharField(max_length=32, blank=True, default="none")
     credit_status = models.CharField(max_length=32, blank=True)
     risk_score = models.DecimalField(**RATE, null=True, blank=True)
     consigned_margin = models.DecimalField(**MONEY, null=True, blank=True)

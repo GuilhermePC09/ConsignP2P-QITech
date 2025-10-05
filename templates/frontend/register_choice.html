@@ -1,0 +1,84 @@
+{% extends 'frontend/base.html' %}
+
+{% block title %}QInvest — Escolha seu Perfil{% endblock %}
+
+{% block content %}
+<div class="wrapper">
+    <div class="card">
+        <header>
+            <h2>Como você quer usar o QInvest?</h2>
+            <p>Escolha o tipo de conta que melhor se adequa às suas necessidades</p>
+        </header>
+        <div class="body">
+            <div style="display: grid; gap: 20px; margin-top: 20px;">
+                
+                <!-- Borrower Option -->
+                <div class="upload-item" style="border: 1px solid var(--ink-200); border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.2s;" 
+                     onclick="window.location.href='{% url 'frontend:register' %}'">
+                    <div class="left">
+                        <div class="title" style="display: flex; align-items: center; gap: 12px;">
+                            <span style="font-size: 24px;">💰</span>
+                            <span>Quero Pedir Empréstimo</span>
+                        </div>
+                        <div class="desc" style="margin-top: 8px; color: var(--ink-600);">
+                            Solicite empréstimos consignados com taxas competitivas.<br>
+                            Ideal para funcionários públicos e aposentados do INSS.
+                        </div>
+                        <div style="margin-top: 12px; font-size: 14px; color: var(--ink-500);">
+                            ✓ Análise rápida de crédito<br>
+                            ✓ Taxas de juros competitivas<br>
+                            ✓ Desconto direto na folha de pagamento
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; color: var(--brand-600);">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18l6-6-6-6"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Investor Option -->
+                <div class="upload-item" style="border: 1px solid var(--ink-200); border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.2s;" 
+                     onclick="window.location.href='{% url 'frontend:register_investor' %}'">
+                    <div class="left">
+                        <div class="title" style="display: flex; align-items: center; gap: 12px;">
+                            <span style="font-size: 24px;">📈</span>
+                            <span>Quero Investir</span>
+                        </div>
+                        <div class="desc" style="margin-top: 8px; color: var(--ink-600);">
+                            Invista em operações de crédito consignado P2P.<br>
+                            Diversifique seu portfólio com rentabilidade atrativa.
+                        </div>
+                        <div style="margin-top: 12px; font-size: 14px; color: var(--ink-500);">
+                            ✓ Rentabilidade superior à poupança<br>
+                            ✓ Risco mitigado pelo consignado<br>
+                            ✓ Diversificação automática do portfólio
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; color: var(--brand-600);">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18l6-6-6-6"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 30px; text-align: center; font-size: 14px; color: var(--ink-500);">
+                Já tem uma conta? 
+                <a href="{% url 'frontend:login' %}" style="color: var(--brand-600); text-decoration: none; font-weight: 500;">
+                    Fazer login
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.upload-item:hover {
+    border-color: var(--brand-400) !important;
+    background-color: var(--brand-25) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(14, 75, 210, 0.15);
+}
+</style>
+{% endblock %}

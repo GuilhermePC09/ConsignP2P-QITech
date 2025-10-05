@@ -37,7 +37,10 @@ urlpatterns = [
          views.borrower_kyc_status, name='borrower_kyc_status'),
     path('borrowers/<str:borrower_id>/kyc/submit/',
          views.borrower_kyc_submit, name='borrower_kyc_submit'),
-     
-     path('offers/<str:offer_id>/accept/', views.offer_accept, name='offer_accept'),
 
+    # Loan Offer endpoints
+    path('offers/<str:offer_id>/accept/',
+         views.borrower_accept_offer, name='borrower_accept_offer'),
+    path('offers/<str:offer_id>/download/',
+         views.download_offer_proposal, name='download_offer_proposal'),
 ]

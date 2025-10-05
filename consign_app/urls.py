@@ -20,13 +20,17 @@ from django.urls import path, include
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("o/", include("oauth2_provider.urls", namespace="oauth2_provider")),
+    # API endpoints (v1)
     path("api/v1/", include("consign_app.api.urls")),
+    # Backwards-compatible API root (legacy tests / external callers may use /api/)
+    path("api/", include("consign_app.api.urls")),
     path("dataprev/", include("consign_app.dataprev_mock.urls")),
     path("of/", include("consign_app.open_finance_mock.urls")),
     path("risk/", include(("risk.urls", "risk"), namespace="risk")),
     path(
         "qitech_mock/",
-        include(("consign_app.qitech_mock.urls", "qitech_mock"), namespace="qitech_mock")
+        include(("consign_app.qitech_mock.urls", "qitech_mock"),
+                namespace="qitech_mock")
     ),
     path('', include('frontend.urls')),
 ]
