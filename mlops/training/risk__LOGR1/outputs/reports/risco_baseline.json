@@ -18,13 +18,13 @@
     "tempo_rel_banco_meses"
   ],
   "target": "default90",
-  "n_train": 9600,
-  "n_test": 2400,
+  "n_train": 8400,
+  "n_test": 3600,
   "metrics": {
-    "auc": 0.6920072511286348,
-    "ks": 0.2723655974230325,
-    "brier": 0.10621395526474547
+    "auc": 0.6961185562573301,
+    "ks": 0.283898578637601,
+    "brier": 0.10547060352043347
   },
   "calibrated": true,
-  "created_at": 1759617193
+  "created_at": 1759632447
 }

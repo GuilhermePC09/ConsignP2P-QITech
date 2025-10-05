@@ -1,7 +1,7 @@
 mode: "model"          # "model" (usa LINR1) | "rule" (usa fórmula direta)
 caps:
-  min_rate_monthly: 0.017
-  max_rate_monthly: 0.045
+  min_rate_monthly: 0.02
+  max_rate_monthly: 0.05
 
 # curva-alvo (unit economics) – usada quando não há histórico real
 unit_economics:

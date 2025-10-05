@@ -1,15 +1,15 @@
 scorecard:
   S0: 700
-  O0: 20
-  PDO: 50
+  O0: 35
+  PDO: 55
 limits:
   pd_floor: 0.002
   pd_ceiling: 0.60
   score_min: 0
   score_max: 1000
 bands:
-  A: {min: 800}
-  B: {min: 680}
-  C: {min: 580}
-  D: {min: 450}
+  A: {min: 780}
+  B: {min: 700}
+  C: {min: 620}
+  D: {min: 520}
   E: {min: 0}
