@@ -13,14 +13,21 @@
             <p>Seu painel de controle para empréstimos e investimentos</p>
         </header>
         <div class="body">
-        {% if user_context %}
+        {% if user.is_authenticated %}
+            {% if user_context %}
             <div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                     <div>
                         <h3>✅ Usuário Autenticado</h3>
-                        <p><strong>Tomador:</strong> {{ user_context.name }}</p>
-                        <p><strong>ID:</strong> {{ user_context.borrower_id }}</p>
-                        <p><strong>Status KYC:</strong> {{ user_context.kyc_status }}</p>
+                        <p><strong>Nome:</strong> {{ user_context.name }}</p>
+                        <p><strong>Email:</strong> {{ user_context.email }}</p>
+                        {% if user_type == 'borrower' %}
+                            <p><strong>ID:</strong> {{ user_context.borrower_id }}</p>
+                            <p><strong>Status KYC:</strong> {{ user_context.kyc_status|default:"Pendente" }}</p>
+                        {% elif user_type == 'investor' %}
+                            <p><strong>ID:</strong> {{ user_context.investor_id }}</p>
+                            <p><strong>Status KYC:</strong> {{ user_context.kyc_status|default:"Pendente" }}</p>
+                        {% endif %}
                     </div>
                     <a href="{% url 'frontend:logout' %}" class="btn btn-secondary" style="margin-left: 16px;">
                         <svg style="width: 16px; height: 16px; margin-right: 6px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -32,6 +39,24 @@
                     </a>
                 </div>
             </div>
+            {% else %}
+            <div style="background: #e1f5fe; color: #01579b; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <h3>👋 Bem-vindo, {{ user.first_name|default:user.username }}!</h3>
+                        <p>Você está logado mas ainda não tem um perfil completo. Complete seu cadastro para acessar todas as funcionalidades.</p>
+                    </div>
+                    <a href="{% url 'frontend:logout' %}" class="btn btn-secondary" style="margin-left: 16px;">
+                        <svg style="width: 16px; height: 16px; margin-right: 6px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                            <polyline points="16,17 21,12 16,7"/>
+                            <line x1="21" y1="12" x2="9" y2="12"/>
+                        </svg>
+                        Sair
+                    </a>
+                </div>
+            </div>
+            {% endif %}
         {% else %}
             <div style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                 <h3>⚠️ Usuário não autenticado</h3>

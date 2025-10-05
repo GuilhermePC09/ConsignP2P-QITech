@@ -19,6 +19,8 @@ class StampMixin(models.Model):
 class Investor(StampMixin):
     investor_id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        "auth.User", on_delete=models.CASCADE, null=True, blank=True)
     type = models.CharField(max_length=16)                              # pf|pj
     name = models.CharField(max_length=255)
     document = models.CharField(
@@ -42,6 +44,8 @@ class Investor(StampMixin):
 class Borrower(StampMixin):
     borrower_id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        "auth.User", on_delete=models.CASCADE, null=True, blank=True)
     name = models.CharField(max_length=255)
     document = models.CharField(max_length=32, db_index=True)           # CPF
     email = models.EmailField(max_length=255, blank=True)
