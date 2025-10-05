@@ -5,6 +5,13 @@ urlpatterns = [
     # Test endpoint
     path('test/', views.test_auth, name='test_auth'),
 
+    # User registration endpoints
+    path('auth/register/investor/',
+         views.register_investor, name='register_investor'),
+    path('auth/register/borrower/',
+         views.register_borrower, name='register_borrower'),
+    path('auth/profile/', views.user_profile, name='user_profile'),
+
     # Investor endpoints
     path('investors/', views.investor_create, name='investor_create'),
     path('investors/<str:investor_id>/offers/',

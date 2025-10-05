@@ -26,42 +26,66 @@ class Command(BaseCommand):
             admin_user.save()
             self.stdout.write('👤 Created admin user')
 
-        # Create OAuth2 application using raw SQL to avoid hashing
-        from django.db import connection
+            # Create OAuth2 applications using Django ORM
+        # 1. Client Credentials Application (for system/API access)
+        client_app = Application.objects.create(
+            client_id='p2p-client-id',
+            client_secret='p2p-secret',
+            name='P2P API Client (Client Credentials)',
+            client_type=Application.CLIENT_CONFIDENTIAL,
+            authorization_grant_type=Application.GRANT_CLIENT_CREDENTIALS,
+            user=admin_user
+        )
 
-        with connection.cursor() as cursor:
-            # Delete existing applications
-            cursor.execute("DELETE FROM oauth2_provider_application")
+        # 2. Password Grant Application (for user authentication)
+        password_app = Application.objects.create(
+            client_id='p2p-password-client',
+            client_secret='p2p-password-secret',
+            name='P2P User Client (Password)',
+            client_type=Application.CLIENT_CONFIDENTIAL,
+            authorization_grant_type=Application.GRANT_PASSWORD,
+            user=admin_user
+        )
 
-            # Insert new application with plain text secret
-            cursor.execute("""
-                INSERT INTO oauth2_provider_application 
-                (client_id, client_secret, name, client_type, authorization_grant_type, user_id, created, updated)
-                VALUES (%s, %s, %s, %s, %s, %s, NOW(), NOW())
-            """, [
-                'p2p-client-id',
-                'p2p-secret',  # Plain text secret
-                'P2P API Client',
-                Application.CLIENT_CONFIDENTIAL,
-                Application.GRANT_CLIENT_CREDENTIALS,
-                admin_user.id
-            ])
+        # 3. Authorization Code Application (for web/mobile apps)
+        auth_code_app = Application.objects.create(
+            client_id='p2p-web-client',
+            client_secret='p2p-web-secret',
+            name='P2P Web Client (Authorization Code)',
+            client_type=Application.CLIENT_CONFIDENTIAL,
+            authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            user=admin_user,
+            redirect_uris='http://127.0.0.1:8000/auth/callback/'
+        )
 
-        # Get the created application for display
-        app = Application.objects.get(client_id='p2p-client-id')
+        # Get the created applications for display
+        apps = Application.objects.all().order_by('name')
 
         self.stdout.write(self.style.SUCCESS(
-            '✅ OAuth2 Application created successfully!'))
-        self.stdout.write('📋 Credentials:')
-        self.stdout.write(f'   Client ID: {app.client_id}')
-        self.stdout.write(f'   Client Secret: {app.client_secret}')
-        self.stdout.write('   Grant Type: client_credentials')
+            '✅ OAuth2 Applications created successfully!'))
+
+        for app in apps:
+            self.stdout.write(f'\n📋 {app.name}:')
+            self.stdout.write(f'   Client ID: {app.client_id}')
+            self.stdout.write(f'   Client Secret: {app.client_secret}')
+            self.stdout.write(f'   Grant Type: {app.authorization_grant_type}')
+
+        self.stdout.write('\n🔗 URLs:')
+        self.stdout.write('   Token URL: http://127.0.0.1:8000/o/token/')
+        self.stdout.write(
+            '   Authorization URL: http://127.0.0.1:8000/o/authorize/')
         self.stdout.write('')
-        self.stdout.write('🔗 Token URL: http://127.0.0.1:8000/o/token/')
-        self.stdout.write('')
-        self.stdout.write('📝 Example token request:')
+
+        self.stdout.write('📝 Example client credentials request:')
         self.stdout.write('curl -X POST http://127.0.0.1:8000/o/token/ \\')
         self.stdout.write(
             '  -H "Content-Type: application/x-www-form-urlencoded" \\')
         self.stdout.write(
             '  -d "grant_type=client_credentials&client_id=p2p-client-id&client_secret=p2p-secret"')
+
+        self.stdout.write('\n📝 Example password grant request (user login):')
+        self.stdout.write('curl -X POST http://127.0.0.1:8000/o/token/ \\')
+        self.stdout.write(
+            '  -H "Content-Type: application/x-www-form-urlencoded" \\')
+        self.stdout.write(
+            '  -d "grant_type=password&client_id=p2p-password-client&client_secret=p2p-password-secret&username=USER&password=PASS"')

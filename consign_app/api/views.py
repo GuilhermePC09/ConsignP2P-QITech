@@ -4,17 +4,22 @@ from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
+from django.contrib.auth import authenticate
 import uuid
 from datetime import date, datetime, timedelta
 from decimal import Decimal
 
-from .permissions import IsOAuth2Authenticated
+from .permissions import (
+    IsOAuth2Authenticated, IsUserAuthenticated, IsInvestorUser,
+    IsBorrowerUser, IsOwnerOrAdmin
+)
 
 from consign_app.core_db.models import (
     Investor, Borrower, LoanOffer, Contract, Installment,
     Payment, KycRisk, Wallet
 )
 from .serializers import (
+    InvestorUserRegistrationSerializer, BorrowerUserRegistrationSerializer,
     InvestorCreateSerializer, InvestorCreatedSerializer,
     OfferSummarySerializer, OfferDetailSerializer,
     InvestorHistorySerializer, BorrowerCreateSerializer,
@@ -52,6 +57,98 @@ def test_auth(request):
             'error': f'Exception in test endpoint: {str(e)}',
             'message': 'Test endpoint has errors'
         }, status=500)
+
+
+# ===============================================
+# USER REGISTRATION ENDPOINTS
+# ===============================================
+
+@api_view(['POST'])
+# Allow unauthenticated for registration
+@permission_classes([permissions.AllowAny])
+def register_investor(request):
+    """Register a new investor user"""
+    serializer = InvestorUserRegistrationSerializer(data=request.data)
+
+    if serializer.is_valid():
+        investor = serializer.save()
+
+        # Return created investor data
+        response_serializer = InvestorCreatedSerializer(investor)
+        return Response({
+            'message': 'Investor user registered successfully',
+            'investor': response_serializer.data,
+            'instructions': 'You can now authenticate using OAuth2 with your username/password or obtain API credentials.'
+        }, status=status.HTTP_201_CREATED)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+# Allow unauthenticated for registration
+@permission_classes([permissions.AllowAny])
+def register_borrower(request):
+    """Register a new borrower user"""
+    serializer = BorrowerUserRegistrationSerializer(data=request.data)
+
+    if serializer.is_valid():
+        borrower = serializer.save()
+
+        # Return created borrower data
+        response_serializer = BorrowerCreatedSerializer(borrower)
+        return Response({
+            'message': 'Borrower user registered successfully',
+            'borrower': response_serializer.data,
+            'instructions': 'You can now authenticate using OAuth2 with your username/password or obtain API credentials.'
+        }, status=status.HTTP_201_CREATED)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([IsUserAuthenticated])
+def user_profile(request):
+    """Get current user's profile information"""
+    user = request.user
+
+    # Check if user has investor profile
+    if hasattr(user, 'investor_profile') and user.investor_profile:
+        serializer = InvestorCreatedSerializer(user.investor_profile)
+        return Response({
+            'user_type': 'investor',
+            'profile': serializer.data,
+            'user_info': {
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name
+            }
+        })
+
+    # Check if user has borrower profile
+    elif hasattr(user, 'borrower_profile') and user.borrower_profile:
+        serializer = BorrowerCreatedSerializer(user.borrower_profile)
+        return Response({
+            'user_type': 'borrower',
+            'profile': serializer.data,
+            'user_info': {
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name
+            }
+        })
+
+    else:
+        return Response({
+            'error': 'User has no investor or borrower profile',
+            'user_info': {
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name
+            }
+        }, status=status.HTTP_404_NOT_FOUND)
 
 
 # ===============================================
