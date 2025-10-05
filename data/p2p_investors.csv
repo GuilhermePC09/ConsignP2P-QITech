@@ -1,0 +1,4 @@
+investor_id,type,name,document,email,phone_number,kyc_status,suitability_profile,preferred_payout_method,status,primary_wallet_id,created_at,updated_at,trace_id
+eeee3183-69ca-47e7-5826-00e9111f4efd,pf,Investidor 1,12345678901,investor1@example.com,+55 11 90101-0001,approved,moderate,pix,active,07cca836-666b-98e8-5f06-35a092c780ae,2025-10-01T12:00:00Z,2025-10-01T12:00:00Z,trace-inv-1
+8dea3aa4-c08a-6073-52d0-95151c4a09ca,pf,Investidor 2,12345678902,investor2@example.com,+55 11 90202-0002,approved,moderate,pix,active,1880de82-2353-2e62-b9f9-f0943fadcd4e,2025-10-01T12:00:00Z,2025-10-01T12:00:00Z,trace-inv-2
+ae0b6517-0cb7-6f5a-cec8-129282e394bd,pj,Fundo XPTO LTDA,1122233300019,investor3@example.com,+55 11 90303-0003,approved,conservative,pix,active,5398952f-6045-85c6-ba9c-6e0b6c59d51d,2025-10-01T12:00:00Z,2025-10-01T12:00:00Z,trace-inv-3

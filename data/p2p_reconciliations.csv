@@ -1,0 +1,2 @@
+reconciliation_id,period_start,period_end,source,totals_expected,totals_actual,differences,status,created_at,updated_at,trace_id
+9e28d428-18ba-dfff-56ef-24f9ea6a3d47,2025-10-01T12:00:00Z,2025-11-30T12:00:00Z,bank,"{""payments"": 4}","{""payments"": 4}",{},closed,2025-10-01T12:00:00Z,2025-10-01T12:00:00Z,trace-recon-01

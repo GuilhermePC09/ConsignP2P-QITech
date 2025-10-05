@@ -1,0 +1,3 @@
+consignment_agreement_id,borrower_id,issuer,enrollment_id,consigned_margin,valid_from,valid_to,status,created_at,updated_at,trace_id
+a7c5f31d-44b4-1dc4-5bbd-bddec5bfe2c6,46a32f42-bc66-323a-c223-2d710b7880d7,inss,MATR-0001,2500.00,2025-01-01,2026-12-31,active,2025-10-01T12:00:00Z,2025-10-01T12:00:00Z,trace-cons-1
+9d6d4278-f234-c256-f63c-bcd3660802ae,0b9f15ec-bbd6-b49e-746f-25d427837704,orgao_publico,MATR-0002,1500.00,2025-01-01,2026-12-31,active,2025-10-01T12:00:00Z,2025-10-01T12:00:00Z,trace-cons-2

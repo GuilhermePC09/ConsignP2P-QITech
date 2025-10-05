@@ -1,0 +1,5 @@
+wallet_id,owner_type,owner_id,currency,available_balance,blocked_balance,status,external_reference,account_key,created_at,updated_at,trace_id
+49346aab-9a41-30c7-e437-eaf0db15976c,platform,,BRL,100000.00,0.00,active,ARQ-PLATFORM,ACC-PLATFORM-000,2025-10-01T12:00:00Z,2025-10-01T12:00:00Z,trace-wallet-platform
+07cca836-666b-98e8-5f06-35a092c780ae,investor,eeee3183-69ca-47e7-5826-00e9111f4efd,BRL,50000.00,0.00,active,ARQ-eeee3183,ACC-eeee3183,2025-10-01T12:00:00Z,2025-10-01T12:00:00Z,trace-wallet-eeee3183
+1880de82-2353-2e62-b9f9-f0943fadcd4e,investor,8dea3aa4-c08a-6073-52d0-95151c4a09ca,BRL,50000.00,0.00,active,ARQ-8dea3aa4,ACC-8dea3aa4,2025-10-01T12:00:00Z,2025-10-01T12:00:00Z,trace-wallet-8dea3aa4
+5398952f-6045-85c6-ba9c-6e0b6c59d51d,investor,ae0b6517-0cb7-6f5a-cec8-129282e394bd,BRL,50000.00,0.00,active,ARQ-ae0b6517,ACC-ae0b6517,2025-10-01T12:00:00Z,2025-10-01T12:00:00Z,trace-wallet-ae0b6517

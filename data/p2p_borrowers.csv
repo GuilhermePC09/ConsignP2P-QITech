@@ -1,0 +1,4 @@
+borrower_id,name,document,email,phone_number,kyc_status,credit_status,risk_score,consigned_margin,consignment_agreement_id,created_at,updated_at,trace_id
+46a32f42-bc66-323a-c223-2d710b7880d7,Tomador 1,98765432101,borrower1@example.com,+55 21 9801-1001,approved,approved,0.6,2500.00,a7c5f31d-44b4-1dc4-5bbd-bddec5bfe2c6,2025-10-01T12:00:00Z,2025-10-01T12:00:00Z,trace-bor-1
+0b9f15ec-bbd6-b49e-746f-25d427837704,Tomador 2,98765432102,borrower2@example.com,+55 21 9802-1002,approved,in_review,0.5,1800.00,9d6d4278-f234-c256-f63c-bcd3660802ae,2025-10-01T12:00:00Z,2025-10-01T12:00:00Z,trace-bor-2
+381b78fe-8118-7003-8bcd-1acba164c267,Tomador 3,98765432103,borrower3@example.com,+55 21 9803-1003,pending,in_review,0.5,1800.00,,2025-10-01T12:00:00Z,2025-10-01T12:00:00Z,trace-bor-3

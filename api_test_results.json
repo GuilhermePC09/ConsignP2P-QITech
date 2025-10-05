@@ -1,0 +1,146 @@
+[
+  {
+    "timestamp": "2025-10-04T22:01:00.026607",
+    "endpoint": "/test/",
+    "method": "GET",
+    "status_code": 200,
+    "success": true,
+    "error": null,
+    "response_sample": "{'message': 'OAuth2 authentication working!', 'authenticated': False, 'user': 'None', 'has_auth': True, 'auth_type': 'AccessToken', 'access_granted': True}"
+  },
+  {
+    "timestamp": "2025-10-04T22:01:00.641691",
+    "endpoint": "/investors/",
+    "method": "POST",
+    "status_code": 201,
+    "success": true,
+    "error": null,
+    "response_sample": "{'investor_id': '15da98d9-537a-49c0-9c8a-8478176bce39', 'name': 'Test Investor API', 'document': '12345678901', 'email': 'test.investor@example.com', 'phone_number': '+5511999999999', 'type': 'pf', 'k"
+  },
+  {
+    "timestamp": "2025-10-04T22:01:02.042473",
+    "endpoint": "/investors/15da98d9-537a-49c0-9c8a-8478176bce39/offers/",
+    "method": "GET",
+    "status_code": 200,
+    "success": true,
+    "error": null,
+    "response_sample": "{'count': 2, 'next': None, 'previous': None, 'results': [{'offer_id': '69b0d174-a948-34c3-0d65-0b6e9ecb1d5f', 'amount': '20000.00', 'rate': '2.200000', 'term_months': 24, 'cet': '2.350000', 'apr': '32"
+  },
+  {
+    "timestamp": "2025-10-04T22:01:02.860429",
+    "endpoint": "/investors/15da98d9-537a-49c0-9c8a-8478176bce39/history/",
+    "method": "GET",
+    "status_code": 200,
+    "success": true,
+    "error": null,
+    "response_sample": "{'contracts': [], 'installments': [], 'payments': []}"
+  },
+  {
+    "timestamp": "2025-10-04T22:01:03.170132",
+    "endpoint": "/investors/15da98d9-537a-49c0-9c8a-8478176bce39/kyc/",
+    "method": "GET",
+    "status_code": 200,
+    "success": true,
+    "error": null,
+    "response_sample": "{'kyc_status': 'pending', 'reason': None}"
+  },
+  {
+    "timestamp": "2025-10-04T22:01:04.239537",
+    "endpoint": "/investors/15da98d9-537a-49c0-9c8a-8478176bce39/kyc/submit/",
+    "method": "POST",
+    "status_code": 202,
+    "success": true,
+    "error": null,
+    "response_sample": "{'status': 'in_review', 'natural_person_key': 'NP-0056727325f2', 'legal_person_key': None}"
+  },
+  {
+    "timestamp": "2025-10-04T22:01:04.546544",
+    "endpoint": "/borrowers/",
+    "method": "POST",
+    "status_code": 201,
+    "success": true,
+    "error": null,
+    "response_sample": "{'borrower_id': 'e7adbffb-913a-4400-9d51-fde351d0b1de', 'name': 'Test Borrower API', 'document': '98765432100', 'email': 'test.borrower@example.com', 'phone_number': '+5511888888888', 'kyc_status': 'p"
+  },
+  {
+    "timestamp": "2025-10-04T22:01:05.013024",
+    "endpoint": "/borrowers/e7adbffb-913a-4400-9d51-fde351d0b1de/simulation/",
+    "method": "POST",
+    "status_code": 201,
+    "success": true,
+    "error": null,
+    "response_sample": "{'offer_id': 'd1fb2a34-fa23-4254-b5dd-222cf4f8c46b', 'cet': '39.488882', 'apr': '34.488882', 'preview_installments': [{'due_date': '2025-11-04', 'amount': '974.87'}, {'due_date': '2025-12-04', 'amount"
+  },
+  {
+    "timestamp": "2025-10-04T22:01:05.322910",
+    "endpoint": "/borrowers/e7adbffb-913a-4400-9d51-fde351d0b1de/kyc/",
+    "method": "GET",
+    "status_code": 200,
+    "success": true,
+    "error": null,
+    "response_sample": "{'kyc_status': 'pending', 'reason': None}"
+  },
+  {
+    "timestamp": "2025-10-04T22:01:06.359963",
+    "endpoint": "/borrowers/e7adbffb-913a-4400-9d51-fde351d0b1de/kyc/submit/",
+    "method": "POST",
+    "status_code": 202,
+    "success": true,
+    "error": null,
+    "response_sample": "{'status': 'in_review', 'natural_person_key': 'NP-96ef32abe5c0', 'legal_person_key': None}"
+  },
+  {
+    "timestamp": "2025-10-04T22:01:06.675564",
+    "endpoint": "/investors/00000000-0000-0000-0000-000000000000/offers/",
+    "method": "GET",
+    "status_code": 404,
+    "success": true,
+    "error": null,
+    "response_sample": "{'detail': 'No Investor matches the given query.'}"
+  },
+  {
+    "timestamp": "2025-10-04T22:01:07.634141",
+    "endpoint": "/offers/69b0d174-a948-34c3-0d65-0b6e9ecb1d5f/",
+    "method": "GET",
+    "status_code": 200,
+    "success": true,
+    "error": null,
+    "response_sample": "{'offer_id': '69b0d174-a948-34c3-0d65-0b6e9ecb1d5f', 'amount': '20000.00', 'rate': '2.200000', 'term_months': 24, 'cet': '2.350000', 'apr': '32.000000', 'issuer': 'QI Tech', 'borrower_risk': 'high', '"
+  },
+  {
+    "timestamp": "2025-10-04T22:01:07.646405",
+    "endpoint": "/invalid/",
+    "method": "GET",
+    "status_code": 404,
+    "success": true,
+    "error": null,
+    "response_sample": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">\n  <title>Page not found at /api/v1/invalid/</title>\n  <meta name=\"robots\" content=\"NONE,NO"
+  },
+  {
+    "timestamp": "2025-10-04T22:01:07.951841",
+    "endpoint": "/investors/00000000-0000-0000-0000-000000000000/offers/",
+    "method": "GET",
+    "status_code": 404,
+    "success": true,
+    "error": null,
+    "response_sample": "{'detail': 'No Investor matches the given query.'}"
+  },
+  {
+    "timestamp": "2025-10-04T22:01:08.109458",
+    "endpoint": "/investors/",
+    "method": "POST",
+    "status_code": 400,
+    "success": true,
+    "error": null,
+    "response_sample": "{'name': ['This field may not be blank.']}"
+  },
+  {
+    "timestamp": "2025-10-04T22:01:08.114493",
+    "endpoint": "/test/",
+    "method": "GET",
+    "status_code": 401,
+    "success": true,
+    "error": null,
+    "response_sample": "{'detail': 'Authentication credentials were not provided.'}"
+  }
+]

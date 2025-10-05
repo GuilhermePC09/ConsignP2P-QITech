@@ -19,6 +19,8 @@ from django.urls import path, include
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("o/", include("oauth2_provider.urls", namespace="oauth2_provider")),
+    path("api/v1/", include("consign_app.api.urls")),
     path("dataprev/", include("consign_app.dataprev_mock.urls")),
     path("of/", include("consign_app.open_finance_mock.urls")),
 ]

@@ -1,0 +1,5 @@
+ledger_entry_id,entry_date,debit_account,credit_account,amount,currency,reference_type,reference_id,trace_id,created_at,updated_at
+a1758f22-c545-2d57-6af7-7c9ef3fb46a5,2025-11-05T12:00:00Z,cash,interest_income,1120.45,BRL,payment,3cc3ee79-eb27-37a7-bad1-b5de89efbebc,trace-ledger-a1758f22,2025-10-01T12:00:00Z,2025-10-01T12:00:00Z
+db6e9746-0c7c-5b99-e931-519b3c3b7d93,2025-12-10T12:00:00Z,cash,interest_income,1120.45,BRL,payment,52700f99-088c-be25-39f7-972802259450,trace-ledger-db6e9746,2025-10-01T12:00:00Z,2025-10-01T12:00:00Z
+86bab7da-5b65-9aab-3a89-6f20b31d222b,2025-11-05T12:00:00Z,cash,interest_income,1390.10,BRL,payment,426e275c-734b-f7d9-7cc0-9a6f13ed0ea6,trace-ledger-86bab7da,2025-10-01T12:00:00Z,2025-10-01T12:00:00Z
+c730f1da-f985-ca29-1509-e9ad467032ca,2025-12-10T12:00:00Z,cash,interest_income,1390.10,BRL,payment,cfac5bb2-e6b2-6a36-cfd2-37a4fccebb9d,trace-ledger-c730f1da,2025-10-01T12:00:00Z,2025-10-01T12:00:00Z

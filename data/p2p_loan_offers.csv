@@ -1,0 +1,4 @@
+offer_id,borrower_id,amount,rate,term_months,valid_until,status,cet,apr,fees,external_reference,created_at,updated_at,trace_id
+69b0d174-a948-34c3-0d65-0b6e9ecb1d5f,46a32f42-bc66-323a-c223-2d710b7880d7,20000.00,2.20,24,2025-10-31,open,2.35,32.00,"{""origination"": 300.0, ""iof"": 100.0}",SIM-69b0d174,2025-10-01T12:00:00Z,2025-10-01T12:00:00Z,trace-offer-1
+9d35bde0-e8fd-46e6-8b55-91b9b01a48d0,0b9f15ec-bbd6-b49e-746f-25d427837704,15000.00,2.20,12,2025-10-31,open,2.35,32.00,"{""origination"": 300.0, ""iof"": 100.0}",SIM-9d35bde0,2025-10-01T12:00:00Z,2025-10-01T12:00:00Z,trace-offer-2
+e8c2340a-c535-d8c4-a652-28ed34cd5c87,381b78fe-8118-7003-8bcd-1acba164c267,15000.00,2.20,12,2025-10-31,draft,2.35,32.00,"{""origination"": 300.0, ""iof"": 100.0}",SIM-e8c2340a,2025-10-01T12:00:00Z,2025-10-01T12:00:00Z,trace-offer-3
