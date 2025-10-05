@@ -1,6 +1,7 @@
 import os
 import django
 from django.core.management.base import BaseCommand
+from django.utils import timezone
 from oauth2_provider.models import Application
 from django.contrib.auth.models import User
 
@@ -26,29 +27,18 @@ class Command(BaseCommand):
             admin_user.save()
             self.stdout.write('👤 Created admin user')
 
-        # Create OAuth2 application using raw SQL to avoid hashing
-        from django.db import connection
+        # Clear existing applications
+        Application.objects.filter(client_id='p2p-client-id').delete()
 
-        with connection.cursor() as cursor:
-            # Delete existing applications
-            cursor.execute("DELETE FROM oauth2_provider_application")
-
-            # Insert new application with plain text secret
-            cursor.execute("""
-                INSERT INTO oauth2_provider_application 
-                (client_id, client_secret, name, client_type, authorization_grant_type, user_id, created, updated)
-                VALUES (%s, %s, %s, %s, %s, %s, NOW(), NOW())
-            """, [
-                'p2p-client-id',
-                'p2p-secret',  # Plain text secret
-                'P2P API Client',
-                Application.CLIENT_CONFIDENTIAL,
-                Application.GRANT_CLIENT_CREDENTIALS,
-                admin_user.id
-            ])
-
-        # Get the created application for display
-        app = Application.objects.get(client_id='p2p-client-id')
+        # Create new application using Django ORM
+        app = Application.objects.create(
+            client_id='p2p-client-id',
+            client_secret='p2p-secret',
+            name='P2P API Client',
+            client_type=Application.CLIENT_CONFIDENTIAL,
+            authorization_grant_type=Application.GRANT_CLIENT_CREDENTIALS,
+            user=admin_user
+        )
 
         self.stdout.write(self.style.SUCCESS(
             '✅ OAuth2 Application created successfully!'))
