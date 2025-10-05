@@ -1,0 +1,342 @@
+{% extends 'frontend/base.html' %}
+
+{% block title %}QInvest — Verificação de Documentos{% if source == 'loan-simulation' %} (Etapa 4 de 6){% endif %}{% endblock %}
+
+{% if source == 'loan-simulation' %}
+{% block stepbar %}
+<div class="stepbar"><div style="width: calc(100% * 4 / 6)"></div></div>
+{% endblock %}
+{% endif %}
+
+{% block header %}
+<div class="header">
+    <div class="title">
+        <span style="display:grid;place-items:center;width:28px;height:28px;border-radius:999px;background:var(--brand-50);color:var(--brand-700)">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14,2 14,8 20,8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <polyline points="10,9 9,9 8,9"/>
+            </svg>
+        </span>
+        <div>
+            <div>Verificação de Documentos</div>
+            <div class="subtitle">Envie seus documentos para análise</div>
+        </div>
+    </div>
+    {% if source == 'loan-simulation' %}
+    <div style="font-size:14px;color:var(--ink-700)">Etapa 4 de 6</div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="wrapper">
+    {% if debug_mode %}
+        <div style="margin-bottom: 20px; padding: 15px; border-radius: 12px; background: #FEF3CD; color: #92400E; border: 1px solid #FBBF24;">
+            <strong>🐛 Modo Debug Ativo (DEBUG={{ debug_mode }}):</strong> Você pode prosseguir sem enviar todos os documentos obrigatórios.
+        </div>
+    {% else %}
+        <div style="margin-bottom: 20px; padding: 15px; border-radius: 12px; background: #F3F4F6; color: #374151; border: 1px solid #D1D5DB;">
+            <strong>📋 Modo Produção (DEBUG={{ debug_mode }}):</strong> Todos os documentos são obrigatórios.
+        </div>
+    {% endif %}
+
+    {% if form.non_field_errors %}
+        <div style="margin-bottom: 20px; padding: 15px; border-radius: 12px; background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA;">
+            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="card" role="form" aria-labelledby="documents-title">
+        <header>
+            <h2 id="documents-title">Envio de Documentos</h2>
+            <p>Para prosseguir com sua solicitação, precisamos dos seguintes documentos</p>
+        </header>
+        <div class="body">
+            <form method="post" id="documents-form" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- Document Upload Items -->
+                <div class="upload-item">
+                    <div class="left">
+                        <div class="title">📄 RG ou CNH (frente e verso)</div>
+                        <div class="desc">Documento de identidade oficial com foto</div>
+                        <div id="rg-status" class="status-badge" style="display: none;">Pendente</div>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="file" id="rg-upload" name="rg_document" accept="image/*,.pdf" style="display: none;" {% if not debug_mode %}required{% endif %}>
+                        <button type="button" class="icon-btn" onclick="document.getElementById('rg-upload').click()">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17,8 12,3 7,8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="upload-item">
+                    <div class="left">
+                        <div class="title">📄 CPF</div>
+                        <div class="desc">Documento do CPF ou comprovante de situação cadastral</div>
+                        <div id="cpf-status" class="status-badge" style="display: none;">Pendente</div>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="file" id="cpf-upload" name="cpf_document" accept="image/*,.pdf" style="display: none;" {% if not debug_mode %}required{% endif %}>
+                        <button type="button" class="icon-btn" onclick="document.getElementById('cpf-upload').click()">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17,8 12,3 7,8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="upload-item">
+                    <div class="left">
+                        <div class="title">🏠 Comprovante de Residência</div>
+                        <div class="desc">Conta de luz, água, telefone ou extrato bancário (últimos 3 meses)</div>
+                        <div id="address-status" class="status-badge" style="display: none;">Pendente</div>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="file" id="address-upload" name="address_document" accept="image/*,.pdf" style="display: none;" {% if not debug_mode %}required{% endif %}>
+                        <button type="button" class="icon-btn" onclick="document.getElementById('address-upload').click()">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17,8 12,3 7,8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="upload-item">
+                    <div class="left">
+                        <div class="title">💰 Comprovante de Renda</div>
+                        <div class="desc">Holerite, declaração de imposto de renda ou extrato bancário</div>
+                        <div id="income-status" class="status-badge" style="display: none;">Pendente</div>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="file" id="income-upload" name="income_document" accept="image/*,.pdf" style="display: none;" {% if not debug_mode %}required{% endif %}>
+                        <button type="button" class="icon-btn" onclick="document.getElementById('income-upload').click()">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17,8 12,3 7,8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Additional Information -->
+                <div style="margin-top: 24px; padding: 16px; background: var(--ink-50); border-radius: 12px;">
+                    <h3 style="margin: 0 0 12px; color: var(--ink-700); font-size: 16px;">📋 Informações Importantes</h3>
+                    <ul style="margin: 0; padding-left: 16px; color: var(--ink-600); font-size: 14px; line-height: 1.6;">
+                        <li>Os documentos devem estar legíveis e atualizados</li>
+                        <li>Formatos aceitos: JPG, PNG, PDF (máximo 5MB por arquivo)</li>
+                        <li>Fotos devem ser nítidas e sem cortes</li>
+                        <li>Todos os documentos são obrigatórios para prosseguir</li>
+                        <li>Seus dados estão protegidos por criptografia</li>
+                    </ul>
+                </div>
+
+                <!-- Upload Progress -->
+                <div id="upload-progress" style="display: none; margin-top: 16px;">
+                    <div style="margin-bottom: 8px; font-size: 14px; color: var(--ink-600);">
+                        Enviando documentos... <span id="progress-text">0%</span>
+                    </div>
+                    <div style="width: 100%; height: 8px; background: var(--ink-200); border-radius: 4px; overflow: hidden;">
+                        <div id="progress-bar" style="width: 0%; height: 100%; background: var(--brand-600); transition: width 0.3s ease;"></div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="form-actions">
+            <button type="button" class="btn btn-secondary" onclick="goBack()">← Voltar</button>
+            <button type="submit" form="documents-form" class="btn btn-primary" id="submit-docs" 
+                    {% if not debug_mode %}disabled{% endif %}
+                    {% if debug_mode %}style="background: linear-gradient(180deg, #f59e0b, #d97706);"{% endif %}>
+                {% if debug_mode %}Prosseguir (Modo Debug) →{% else %}Enviar Documentos →{% endif %}
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Set debug mode flag for JavaScript
+{% if debug_mode %}
+window.debugModeEnabled = true;
+{% else %}
+window.debugModeEnabled = false;
+{% endif %}
+
+// Robust back navigation function
+function goBack() {
+    // Check if there's history to go back to
+    if (window.history.length > 1) {
+        window.history.back();
+    } else {
+        // Fallback navigation based on source parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const source = urlParams.get('source');
+        
+        if (source === 'loan-simulation') {
+            window.location.href = "{% url 'frontend:loan_simulation' %}";
+        } else {
+            // Default fallback to home
+            window.location.href = "{% url 'frontend:home' %}";
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInputs = ['rg-upload', 'cpf-upload', 'address-upload', 'income-upload'];
+    const submitBtn = document.getElementById('submit-docs');
+    
+    // File upload handlers
+    fileInputs.forEach(inputId => {
+        const input = document.getElementById(inputId);
+        const statusId = inputId.replace('-upload', '-status');
+        const statusElement = document.getElementById(statusId);
+        
+        input.addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                const file = e.target.files[0];
+                
+                // Validate file size (5MB max)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Arquivo muito grande. Tamanho máximo: 5MB');
+                    e.target.value = '';
+                    return;
+                }
+                
+                // Validate file type
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+                if (!allowedTypes.includes(file.type)) {
+                    alert('Formato não aceito. Use JPG, PNG ou PDF');
+                    e.target.value = '';
+                    return;
+                }
+                
+                // Update status
+                statusElement.textContent = '✓ Arquivo selecionado';
+                statusElement.style.background = '#E6F9ED';
+                statusElement.style.color = '#059669';
+                statusElement.style.display = 'inline-block';
+                
+                // Update button to indicate file uploaded
+                const btn = input.parentElement.querySelector('.icon-btn');
+                btn.style.background = 'linear-gradient(180deg, #059669, #047857)';
+                btn.innerHTML = `
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 6L9 17l-5-5"/>
+                    </svg>
+                `;
+                
+                checkAllFiles();
+            }
+        });
+    });
+    
+    // Check if all files are uploaded
+    function checkAllFiles() {
+        const allUploaded = fileInputs.every(inputId => {
+            const input = document.getElementById(inputId);
+            return input.files && input.files[0];
+        });
+        
+        // Check if we can proceed (different logic for debug vs production)
+        let canProceed = allUploaded;
+        let isDebugMode = false;
+        
+        // This will be set by Django template
+        if (window.debugModeEnabled) {
+            canProceed = true; // Always allow in debug mode
+            isDebugMode = true;
+        }
+        
+        if (canProceed) {
+            submitBtn.disabled = false;
+            if (isDebugMode && !allUploaded) {
+                submitBtn.textContent = 'Prosseguir (Modo Debug) →';
+                submitBtn.style.background = 'linear-gradient(180deg, #f59e0b, #d97706)';
+            } else {
+                submitBtn.textContent = 'Enviar Documentos →';
+                submitBtn.style.background = '';
+            }
+        } else {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Enviar Documentos →';
+            submitBtn.style.background = '';
+        }
+    }
+    
+    // Initialize the check on page load
+    checkAllFiles();
+    
+    // Form submission with progress
+    document.getElementById('documents-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const progressDiv = document.getElementById('upload-progress');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        const form = this;
+        
+        progressDiv.style.display = 'block';
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Enviando...';
+        
+        // Simulate upload progress
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress > 100) progress = 100;
+            
+            progressBar.style.width = progress + '%';
+            progressText.textContent = Math.round(progress) + '%';
+            
+            if (progress >= 100) {
+                clearInterval(interval);
+                setTimeout(() => {
+                    // Create a new form submission without the event listener
+                    const formData = new FormData(form);
+                    
+                    // Submit via fetch to maintain control
+                    fetch(form.action || window.location.href, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        }
+                    }).then(response => {
+                        if (response.redirected) {
+                            // Django redirected us, follow the redirect
+                            window.location.href = response.url;
+                        } else if (response.ok) {
+                            // Success but no redirect, go to default next step
+                            window.location.href = "{% url 'frontend:loan_proposal' %}";
+                        } else {
+                            // Error occurred
+                            alert('Erro ao enviar documentos. Tente novamente.');
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = 'Enviar Documentos →';
+                            progressDiv.style.display = 'none';
+                        }
+                    }).catch(error => {
+                        console.error('Erro:', error);
+                        alert('Erro ao enviar documentos. Tente novamente.');
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Enviar Documentos →';
+                        progressDiv.style.display = 'none';
+                    });
+                }, 500);
+            }
+        }, 200);
+    });
+});
+</script>
+{% endblock %}

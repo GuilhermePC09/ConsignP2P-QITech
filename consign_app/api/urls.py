@@ -7,6 +7,17 @@ urlpatterns = [
 
     # Investor endpoints
     path('investors/', views.investor_create, name='investor_create'),
+
+    # Multi-step investor creation
+    path('investors/registration/info/', views.investor_registration_process_info,
+         name='investor_registration_process_info'),
+    path('investors/validate-basic-info/', views.investor_validate_basic_info,
+         name='investor_validate_basic_info'),
+    path('investors/validate-contact-preferences/', views.investor_validate_contact_preferences,
+         name='investor_validate_contact_preferences'),
+    path('investors/finalize-registration/', views.investor_finalize_registration,
+         name='investor_finalize_registration'),
+
     path('investors/<str:investor_id>/offers/',
          views.investor_list_offers, name='investor_list_offers'),
     path('offers/<str:offer_id>/', views.investor_get_offer,

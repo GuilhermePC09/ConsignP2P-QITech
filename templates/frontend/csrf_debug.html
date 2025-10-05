@@ -1,0 +1,64 @@
+{% extends 'frontend/base.html' %}
+
+{% block title %}CSRF Debug - QInvest{% endblock %}
+
+{% block header_subtitle %}Debug CSRF Token{% endblock %}
+{% block step_indicator %}Debug{% endblock %}
+
+{% block content %}
+<div class="wrapper">
+    <div class="card">
+        <header>
+            <h2>CSRF Token Debug</h2>
+            <p>Esta página ajuda a debugar problemas com o token CSRF</p>
+        </header>
+        <div class="body">
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <h3>Informações do Token CSRF:</h3>
+            <p><strong>Token CSRF:</strong> <code>{{ csrf_token }}</code></p>
+            <p><strong>Comprimento do Token:</strong> {{ csrf_token|length }} caracteres</p>
+            <p><strong>Request Method:</strong> {{ request.method }}</p>
+            <p><strong>Session Key:</strong> {{ request.session.session_key|default:"Nenhuma sessão ativa" }}</p>
+        </div>
+
+        <form method="post" enctype="application/x-www-form-urlencoded">
+            {% csrf_token %}
+            
+            <div class="field">
+                <label class="label" for="test_field">Campo de Teste</label>
+                <div class="input">
+                    <input type="text" name="test_field" id="test_field" placeholder="Digite algo para testar" required>
+                </div>
+                <div class="hint">Este é apenas um teste para verificar se o CSRF está funcionando</div>
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="btn btn-primary">Testar CSRF →</button>
+            </div>
+        </form>
+
+        {% if request.method == 'POST' %}
+            <div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; margin-top: 20px;">
+                <h3>✅ Sucesso!</h3>
+                <p>O formulário foi enviado com sucesso. O CSRF token está funcionando corretamente.</p>
+                <p><strong>Valor enviado:</strong> {{ request.POST.test_field }}</p>
+            </div>
+        {% endif %}
+
+        <div style="margin-top: 30px; padding: 20px; background: #fff3cd; border-radius: 8px;">
+            <h3>🔧 Passos para resolver problemas de CSRF:</h3>
+            <ol>
+                <li><strong>Limpe o cache do navegador</strong> - Pressione Ctrl+F5 (ou Cmd+Shift+R no Mac)</li>
+                <li><strong>Verifique os cookies</strong> - Certifique-se de que os cookies estão habilitados</li>
+                <li><strong>Teste em uma janela privada/incógnita</strong> - Para descartar problemas de cache</li>
+                <li><strong>Verifique se está acessando o site pelo mesmo domínio</strong> - Não misture localhost com 127.0.0.1</li>
+                <li><strong>Recarregue a página antes de enviar o formulário</strong> - Especialmente depois de fazer login</li>
+            </ol>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <a href="{% url 'frontend:home' %}" class="btn btn-secondary">← Voltar ao Início</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

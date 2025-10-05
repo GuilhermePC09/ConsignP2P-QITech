@@ -208,3 +208,6 @@ __marimo__/
 
 # Mac OS files
 .DS_Store
+
+# Ignore Figma generated HTML files:
+Figma/

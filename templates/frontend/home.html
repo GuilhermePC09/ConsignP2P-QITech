@@ -1,0 +1,54 @@
+{% extends 'frontend/base.html' %}
+
+{% block title %}QInvest — Liberdade para viver!{% endblock %}
+
+{% block header %}{% endblock %}
+
+{% block content %}
+<div class="frame">
+    <section class="wrapper" style="text-align:center">
+        <div style="width:220px;height:220px;border-radius:999px;display:grid;place-items:center;overflow:hidden;margin:0 auto 32px;background: radial-gradient(120px 120px at 50% 40%, #0B2A88, #051641 70%); box-shadow:0 10px 20px rgba(2,6,23,.12)">
+            <svg style="width:84%;height:auto;display:block;color:#fff" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                <path d="M2 17l10 5 10-5"/>
+                <path d="M2 12l10 5 10-5"/>
+            </svg>
+        </div>
+        <h1>QInvest, liberdade<br/>para viver!</h1>
+        <p class="lead">Nossa plataforma conecta investidores e tomadores de forma segura e transparente, oferecendo as melhores condições para seu empréstimo consignado.</p>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div style="margin: 20px auto; padding: 15px; border-radius: 12px; max-width: 500px; {% if message.tags == 'error' %}background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA;{% elif message.tags == 'success' %}background: #F0FDF4; color: #166534; border: 1px solid #BBF7D0;{% else %}background: #FEF3C7; color: #D97706; border: 1px solid #FDE68A;{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="form-actions" style="justify-content:center; gap:12px; flex-direction:column; align-items:center">
+            {% if user.is_authenticated %}
+                <div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center">
+                    <a class="btn btn-primary btn-lg" href="{% url 'frontend:loan_simulation' %}">Simular Empréstimo</a>
+                    <a class="btn btn-secondary btn-lg" href="{% url 'frontend:welcome' %}">Acessar Painel</a>
+                    <a class="btn btn-outline btn-lg" href="{% url 'frontend:marketplace' %}">Ver Ofertas</a>
+                </div>
+                <p class="hint" style="max-width:720px; text-align:center; font-size:12px; color:var(--ink-600); margin-top:8px">
+                    Bem-vindo de volta, <strong>{{ user.first_name|default:user.username }}</strong>! 
+                    Você pode simular um novo empréstimo ou explorar oportunidades de investimento.
+                </p>
+            {% else %}
+                <div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center">
+                    <a class="btn btn-primary btn-lg" href="{% url 'frontend:register' %}?flow=loan">Quero Crédito!</a>
+                    <a class="btn btn-secondary btn-lg" href="{% url 'frontend:login' %}">Já tenho conta</a>
+                </div>
+                <p class="hint" style="max-width:720px; text-align:center; font-size:12px; color:var(--ink-600); margin-top:8px">
+                    Ao clicar em <b>"Quero Crédito!"</b>, você autoriza a <b>QI Tech</b> a consultar seus dados no <b>Dataprev</b> e na 
+                    <b>Carteira de Trabalho (CTPS)</b>, exclusivamente para a formulação e análise da sua proposta de crédito, 
+                    conforme a legislação aplicável e nossa política de privacidade.
+                </p>
+            {% endif %}
+        </div>
+
+    </section>
+</div>
+{% endblock %}

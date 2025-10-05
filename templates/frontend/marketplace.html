@@ -1,0 +1,230 @@
+{% extends 'frontend/base.html' %}
+{% load marketplace_filters %}
+
+{% block title %}QInvest — Ofertas Disponíveis{% endblock %}
+
+{% block header %}
+<header style="background:#fff;border-bottom:1px solid #EEF2F7;position:sticky;top:0;z-index:10">
+    <div style="max-width:1100px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:16px;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:14px">
+            <div style="font-weight:800;font-size:18px;color:#0E4BD2">QInvest</div>
+            <nav style="display:flex;gap:8px;align-items:center">
+                <a href="{% url 'frontend:marketplace' %}" class="btn btn-secondary" style="padding:8px 12px;font-weight:600">Marketplace</a>
+                <a href="#" class="btn btn-outline" style="padding:8px 12px;font-weight:600">Minhas Posições</a>
+                <a href="#" class="btn btn-outline" style="padding:8px 12px;font-weight:600">Mercado Secundário</a>
+                <a href="#" class="btn btn-outline" style="padding:8px 12px;font-weight:600">Histórico</a>
+                <a href="#" class="btn btn-outline" style="padding:8px 12px;font-weight:600">Configurações</a>
+            </nav>
+        </div>
+        <div style="display:grid;place-items:center;width:36px;height:36px;border-radius:999px;background:#EAF2FE;color:#0E4BD2;font-weight:700">👤</div>
+    </div>
+</header>
+{% endblock %}
+
+{% block content %}
+<div class="wrapper" style="max-width:1100px">
+    <h1 style="font-size:28px;margin-top:24px;margin-bottom:8px">Marketplace de Ofertas</h1>
+    <p class="lead" style="text-align:left;margin-left:0">Explore oportunidades de investimento em crédito consignado P2P</p>
+
+    <!-- Filters Section -->
+    <div class="card" style="margin-top:16px">
+        <header style="display:flex;align-items:center;gap:10px;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:10px"><span style="font-weight:700">Filtros</span></div>
+            <div style="font-size:12px;color:#64748B"></div>
+        </header>
+        <div class="body">
+            <form method="GET" id="filter-form">
+                <div class="row">
+                    <div class="field">
+                        <label class="label" for="vmin">Valor Mínimo</label>
+                        <div class="input"><span class="prefix">R$</span><input id="vmin" name="valor_min" placeholder="5.000" value="{{ request.GET.valor_min }}"/></div>
+                    </div>
+                    <div class="field">
+                        <label class="label" for="vmax">Valor Máximo</label>
+                        <div class="input"><span class="prefix">R$</span><input id="vmax" name="valor_max" placeholder="100.000" value="{{ request.GET.valor_max }}"/></div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="field">
+                        <label class="label" for="pmin">Prazo Mínimo</label>
+                        <div class="input">
+                            <select id="pmin" name="prazo_min">
+                                <option value="">Selecione</option>
+                                <option value="1" {% if request.GET.prazo_min == "1" %}selected{% endif %}>1 mês</option>
+                                <option value="6" {% if request.GET.prazo_min == "6" %}selected{% endif %}>6 meses</option>
+                                <option value="12" {% if request.GET.prazo_min == "12" %}selected{% endif %}>12 meses</option>
+                                <option value="24" {% if request.GET.prazo_min == "24" %}selected{% endif %}>24 meses</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" for="pmax">Prazo Máximo</label>
+                        <div class="input">
+                            <select id="pmax" name="prazo_max">
+                                <option value="">Selecione</option>
+                                <option value="12" {% if request.GET.prazo_max == "12" %}selected{% endif %}>12 meses</option>
+                                <option value="24" {% if request.GET.prazo_max == "24" %}selected{% endif %}>24 meses</option>
+                                <option value="36" {% if request.GET.prazo_max == "36" %}selected{% endif %}>36 meses</option>
+                                <option value="48" {% if request.GET.prazo_max == "48" %}selected{% endif %}>48 meses</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="field">
+                        <label class="label" for="tmin">Taxa Mínima (%)</label>
+                        <div class="input"><input id="tmin" name="taxa_min" placeholder="1,5" value="{{ request.GET.taxa_min }}"/></div>
+                    </div>
+                    <div class="field">
+                        <label class="label" for="tmax">Taxa Máxima (%)</label>
+                        <div class="input"><input id="tmax" name="taxa_max" placeholder="3,5" value="{{ request.GET.taxa_max }}"/></div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="field">
+                        <label class="label" for="sort">Ordenar por</label>
+                        <div class="input">
+                            <select id="sort" name="ordenar">
+                                <option value="taxa_desc" {% if request.GET.ordenar == "taxa_desc" %}selected{% endif %}>Maior taxa</option>
+                                <option value="taxa_asc" {% if request.GET.ordenar == "taxa_asc" %}selected{% endif %}>Menor taxa</option>
+                                <option value="recente" {% if request.GET.ordenar == "recente" %}selected{% endif %}>Mais recente</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label">Risco do Investidor</label>
+                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                            <button type="button" class="btn btn-outline risk-filter" data-risk="baixo" 
+                                    style="border-color:#10B981;color:#059669;background:{% if 'baixo' in request.GET.risco %}#E6F9ED{% else %}transparent{% endif %}">Baixo</button>
+                            <button type="button" class="btn btn-outline risk-filter" data-risk="medio"
+                                    style="border-color:#F59E0B;color:#B45309;background:{% if 'medio' in request.GET.risco %}#FEF3C7{% else %}transparent{% endif %}">Médio</button>
+                            <button type="button" class="btn btn-outline risk-filter" data-risk="alto"
+                                    style="border-color:#DC2626;color:#B91C1C;background:{% if 'alto' in request.GET.risco %}#FEE2E2{% else %}transparent{% endif %}">Alto</button>
+                        </div>
+                        <input type="hidden" name="risco" id="risco-input" value="{{ request.GET.risco }}">
+                    </div>
+                </div>
+
+                <div class="form-actions" style="padding-top:8px">
+                    <button type="submit" class="btn btn-primary">Aplicar Filtros</button>
+                    <a class="btn btn-secondary" href="{% url 'frontend:marketplace' %}">Limpar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Offers Grid -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:18px">
+        {% for offer in offers %}
+        <div class="card">
+            <div class="body">
+                <div style="display:flex;justify-content:space-between;align-items:start">
+                    <div style="font-weight:800;font-size:22px">R$ {{ offer.amount|format_currency }}</div>
+                    <div style="color:#16A34A;font-weight:700;font-size:18px">{{ offer.rate|floatformat:1 }}%</div>
+                </div>
+                <div style="margin-top:10px;font-size:14px;line-height:1.8">
+                    <div><b>CET Anual:</b> {{ offer.rate|calculate_cet }}%</div>
+                    <div><b>Prazo:</b> {{ offer.term_months }} meses</div>
+                    <div><b>Risco:</b> 
+                        <span class="status-badge" style="{{ offer.rate|risk_color }}">
+                            {{ offer.rate|risk_level }}
+                        </span>
+                    </div>
+                    <div><b>Válido até:</b> {% if offer.valid_until %}{{ offer.valid_until|date:"d/m/Y" }}{% else %}Sem prazo{% endif %}</div>
+                    <div><b>Status:</b> 
+                        <span class="status-badge" style="
+                            {% if offer.status == 'open' %}background:#E6F9ED;color:#059669{% endif %}
+                            {% if offer.status == 'draft' %}background:#DBEAFE;color:#1D4ED8{% endif %}
+                            {% if offer.status == 'closed' or offer.status == 'funded' %}background:#F1F5F9;color:#6B7280{% endif %}
+                        ">
+                            {% if offer.status == 'open' %}Aberta{% endif %}
+                            {% if offer.status == 'draft' %}Proposta{% endif %}
+                            {% if offer.status == 'funded' %}Financiado{% endif %}
+                            {% if offer.status == 'closed' %}Encerrada{% endif %}
+                        </span>
+                    </div>
+                </div>
+                <div class="form-actions" style="padding:14px 0 0">
+                    {% if offer.status == 'closed' or offer.status == 'funded' %}
+                        <a class="btn btn-secondary" href="#" style="pointer-events:none;opacity:.55">Oferta Encerrada</a>
+                    {% else %}
+                        <a class="btn btn-primary" href="#">Ver Detalhes da Oferta</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="card" style="grid-column: 1 / -1; text-align: center;">
+            <div class="body">
+                <p>Nenhuma oferta encontrada com os filtros aplicados.</p>
+                <a class="btn btn-secondary" href="{% url 'frontend:marketplace' %}">Ver todas as ofertas</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if offers.has_other_pages %}
+    <div style="display:flex;align-items:center;justify-content:space-between;margin:20px 0">
+        {% if offers.has_previous %}
+            <a href="?page={{ offers.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="btn btn-secondary">← Anterior</a>
+        {% else %}
+            <span class="btn btn-secondary" style="opacity:0.5">← Anterior</span>
+        {% endif %}
+        
+        <div style="color:#64748B;font-size:14px">
+            Mostrando {{ offers.start_index }}–{{ offers.end_index }} de {{ offers.paginator.count }} ofertas
+        </div>
+        
+        {% if offers.has_next %}
+            <a href="?page={{ offers.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="btn btn-secondary">Próxima →</a>
+        {% else %}
+            <span class="btn btn-secondary" style="opacity:0.5">Próxima →</span>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Risk filter handling
+    const riskFilters = document.querySelectorAll('.risk-filter');
+    const riskInput = document.getElementById('risco-input');
+    let selectedRisks = riskInput.value ? riskInput.value.split(',') : [];
+
+    riskFilters.forEach(button => {
+        button.addEventListener('click', function() {
+            const risk = this.dataset.risk;
+            
+            if (selectedRisks.includes(risk)) {
+                selectedRisks = selectedRisks.filter(r => r !== risk);
+                this.style.background = 'transparent';
+            } else {
+                selectedRisks.push(risk);
+                if (risk === 'baixo') this.style.background = '#E6F9ED';
+                if (risk === 'medio') this.style.background = '#FEF3C7';
+                if (risk === 'alto') this.style.background = '#FEE2E2';
+            }
+            
+            riskInput.value = selectedRisks.join(',');
+        });
+    });
+
+    // Currency formatting for filter inputs
+    ['vmin', 'vmax'].forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value) {
+                    e.target.value = parseInt(value).toLocaleString('pt-BR');
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

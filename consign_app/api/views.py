@@ -19,6 +19,7 @@ from consign_app.core_db.models import (
 )
 from .serializers import (
     InvestorCreateSerializer, InvestorCreatedSerializer,
+    InvestorStep1Serializer, InvestorStep2Serializer, InvestorStep3Serializer,
     OfferSummarySerializer, OfferDetailSerializer,
     InvestorHistorySerializer, BorrowerCreateSerializer,
     BorrowerCreatedSerializer, SimulationCreateSerializer,
@@ -64,7 +65,7 @@ def test_auth(request):
 @api_view(['POST'])
 @permission_classes([IsOAuth2Authenticated])
 def investor_create(request):
-    """Create a new investor"""
+    """Create a new investor (legacy endpoint - use multi-step instead)"""
     serializer = InvestorCreateSerializer(data=request.data)
 
     if serializer.is_valid():
@@ -89,6 +90,135 @@ def investor_create(request):
         return Response(response_data, status=status.HTTP_201_CREATED)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# ===============================================
+# MULTI-STEP INVESTOR CREATION ENDPOINTS
+# ===============================================
+
+@api_view(['POST'])
+@permission_classes([IsOAuth2Authenticated])
+def investor_validate_basic_info(request):
+    """
+    Passo 1: Validar Informações Básicas
+    Step 1: Validate Basic Information (name, email, document)
+    """
+    serializer = InvestorStep1Serializer(data=request.data)
+
+    if serializer.is_valid():
+        return Response({
+            'message': 'Informações básicas validadas com sucesso',
+            'data': serializer.validated_data,
+            'next_step': 'contact_preferences'
+        }, status=status.HTTP_200_OK)
+
+    return Response({
+        'message': 'Erro na validação das informações básicas',
+        'errors': serializer.errors
+    }, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([IsOAuth2Authenticated])
+def investor_validate_contact_preferences(request):
+    """
+    Passo 2: Validar Contato e Preferências de Investimento
+    Step 2: Validate Contact & Investment Preferences
+    """
+    serializer = InvestorStep2Serializer(data=request.data)
+
+    if serializer.is_valid():
+        return Response({
+            'message': 'Informações de contato e preferências validadas com sucesso',
+            'data': serializer.validated_data,
+            'next_step': 'finalize_registration'
+        }, status=status.HTTP_200_OK)
+
+    return Response({
+        'message': 'Erro na validação das informações de contato',
+        'errors': serializer.errors
+    }, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([IsOAuth2Authenticated])
+def investor_finalize_registration(request):
+    """
+    Passo 3: Finalizar Cadastro e Criar Investidor
+    Step 3: Finalize Registration & Create Investor
+    """
+    serializer = InvestorStep3Serializer(data=request.data)
+
+    if serializer.is_valid():
+        try:
+            investor = serializer.save()
+            response_data = InvestorCreatedSerializer(investor).data
+
+            return Response({
+                'message': 'Investidor criado com sucesso!',
+                'investor': response_data
+            }, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response({
+                'message': 'Erro ao criar investidor',
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    return Response({
+        'message': 'Erro na validação final dos dados',
+        'errors': serializer.errors
+    }, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([IsOAuth2Authenticated])
+def investor_registration_process_info(request):
+    """
+    Informações sobre o processo de cadastro de investidor
+    Information about the investor registration process
+    """
+    return Response({
+        'process': {
+            'title': 'Cadastro de Investidor',
+            'description': 'Processo em 3 passos para cadastrar um novo investidor',
+            'steps': [
+                {
+                    'step': 1,
+                    'title': 'Informações Básicas',
+                    'description': 'Nome, e-mail e CPF/CNPJ',
+                    'endpoint': '/api/investors/validate-basic-info/',
+                    'fields': ['name', 'email', 'document']
+                },
+                {
+                    'step': 2,
+                    'title': 'Contato e Preferências',
+                    'description': 'Telefone, método de pagamento e perfil de investimento',
+                    'endpoint': '/api/investors/validate-contact-preferences/',
+                    'fields': ['phone_number', 'preferred_payout_method', 'investment_capacity', 'risk_tolerance']
+                },
+                {
+                    'step': 3,
+                    'title': 'Finalização do Cadastro',
+                    'description': 'Revisar dados e aceitar termos',
+                    'endpoint': '/api/investors/finalize-registration/',
+                    'fields': ['terms_accepted', 'privacy_accepted']
+                }
+            ]
+        },
+        'field_options': {
+            'preferred_payout_method': [
+                {'value': 'pix', 'label': 'PIX'},
+                {'value': 'ted', 'label': 'TED'},
+                {'value': 'bank_transfer', 'label': 'Transferência Bancária'}
+            ],
+            'risk_tolerance': [
+                {'value': 'conservative', 'label': 'Conservador'},
+                {'value': 'moderate', 'label': 'Moderado'},
+                {'value': 'aggressive', 'label': 'Agressivo'}
+            ]
+        }
+    }, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])

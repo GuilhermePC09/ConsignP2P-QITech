@@ -1,0 +1,200 @@
+{% extends 'frontend/base.html' %}
+
+{% block title %}QInvest — Proposta de Empréstimo (Etapa 6 de 6){% endblock %}
+
+{% block stepbar %}
+<div class="stepbar"><div style="width: calc(100% * 6 / 6)"></div></div>
+{% endblock %}
+
+{% block header %}
+<div class="header">
+    <div class="title">
+        <span style="display:grid;place-items:center;width:28px;height:28px;border-radius:999px;background:var(--brand-50);color:var(--brand-700)">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        </span>
+        <div>
+            <div>Proposta de Empréstimo</div>
+            <div class="subtitle">Revise e aceite sua oferta</div>
+        </div>
+    </div>
+    <div style="font-size:14px;color:var(--ink-700)">Etapa 6 de 6</div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="wrapper">
+    <div class="card">
+        <header style="text-align: center;">
+            <div style="width:80px;height:80px;border-radius:999px;display:grid;place-items:center;overflow:hidden;margin:0 auto 24px;background: linear-gradient(135deg, #10B981, #059669); box-shadow:0 10px 20px rgba(16,185,129,.2)">
+                <svg style="width:32px;height:32px;color:#fff" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+            </div>
+            <h2>Sua Proposta Está Pronta!</h2>
+            <p>Revise as condições e aceite para prosseguir com seu empréstimo</p>
+        </header>
+
+        <div class="body">
+            <!-- Loan Summary Card -->
+            <div style="background: var(--brand-50); border-radius: 16px; padding: 24px; margin-bottom: 24px; border: 2px solid var(--brand-100);">
+                <h3 style="color: var(--brand-700); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                    <svg style="width: 20px; height: 20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                        <line x1="8" y1="21" x2="16" y2="21"/>
+                        <line x1="12" y1="17" x2="12" y2="21"/>
+                    </svg>
+                    Resumo da Proposta
+                </h3>
+                
+                <div class="stats" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px;">
+                    <div class="stat-card" style="background: white; border: 1px solid var(--brand-200);">
+                        <div class="stat-title">Valor Solicitado</div>
+                        <div class="stat-value" style="color: var(--brand-700);">R$ {{ loan_data.amount|floatformat:2 }}</div>
+                    </div>
+                    
+                    <div class="stat-card" style="background: white; border: 1px solid var(--brand-200);">
+                        <div class="stat-title">Prazo</div>
+                        <div class="stat-value" style="color: var(--brand-700);">{{ loan_data.term }} meses</div>
+                    </div>
+                    
+                    <div class="stat-card" style="background: white; border: 1px solid var(--brand-200);">
+                        <div class="stat-title">Taxa Mensal</div>
+                        <div class="stat-value" style="color: var(--brand-700);">{{ loan_data.monthly_rate|floatformat:1 }}% a.m.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Details -->
+            <div style="background: var(--ink-50); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                <h4 style="margin-bottom: 16px; color: var(--ink-700);">Detalhes do Pagamento</h4>
+                
+                <div style="display: grid; gap: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: var(--ink-600);">Valor da Parcela</span>
+                        <span style="font-weight: 700; font-size: 18px; color: var(--brand-600);">R$ {{ loan_data.monthly_payment|floatformat:2 }}</span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: var(--ink-600);">Valor Total a Pagar</span>
+                        <span style="font-weight: 600; color: var(--ink-700);">R$ {{ loan_data.total_payment|floatformat:2 }}</span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: var(--ink-600);">CET (Custo Efetivo Total)</span>
+                        <span style="font-weight: 600; color: var(--ink-700);">{{ loan_data.annual_rate|floatformat:2 }}% a.a.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Important Information -->
+            <div style="background: #FEF3C7; border-radius: 12px; padding: 16px; margin-bottom: 24px; border: 1px solid #FCD34D;">
+                <div style="display: flex; gap: 12px;">
+                    <svg style="width: 20px; height: 20px; color: #D97706; flex-shrink: 0; margin-top: 2px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+                    </svg>
+                    <div>
+                        <h5 style="color: #92400E; margin-bottom: 8px;">Informações Importantes</h5>
+                        <ul style="color: #92400E; font-size: 14px; line-height: 1.5; margin: 0; padding-left: 16px;">
+                            <li>As parcelas serão debitadas diretamente do seu salário</li>
+                            <li>O empréstimo estará sujeito à análise de crédito</li>
+                            <li>Você pode quitar antecipadamente sem multa</li>
+                            <li>Taxa de juros já inclui IOF e demais encargos</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Terms and Conditions -->
+            <div style="margin-bottom: 24px;">
+                <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer; font-size: 14px; line-height: 1.5;">
+                    <input type="checkbox" id="terms-checkbox" required style="margin-top: 2px;">
+                    <span style="color: var(--ink-600);">
+                        Li e aceito os 
+                        <a href="#" style="color: var(--brand-600); text-decoration: none; font-weight: 500;">termos e condições</a> 
+                        e a 
+                        <a href="#" style="color: var(--brand-600); text-decoration: none; font-weight: 500;">política de privacidade</a>
+                        do QInvest
+                    </span>
+                </label>
+            </div>
+
+            <form method="post" id="proposal-form">
+                {% csrf_token %}
+                <div class="form-actions" style="gap: 12px;">
+                    <button type="button" class="btn btn-secondary" onclick="goBack()">← Voltar</button>
+                    <button type="submit" name="action" value="reject" class="btn btn-outline">Recusar Proposta</button>
+                    <button type="submit" name="action" value="accept" class="btn btn-primary" id="acceptBtn" disabled>Aceitar Proposta →</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="secure-note">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="10" rx="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        <span>Seus dados estão seguros e protegidos</span>
+    </div>
+</div>
+
+<script>
+// Robust back navigation function
+function goBack() {
+    // Check if there's history to go back to
+    if (window.history.length > 1) {
+        window.history.back();
+    } else {
+        // Fallback to document verification page as it's the logical previous step
+        window.location.href = "{% url 'frontend:document_verification' %}";
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const termsCheckbox = document.getElementById('terms-checkbox');
+    const acceptBtn = document.getElementById('acceptBtn');
+    
+    // Enable/disable accept button based on terms checkbox
+    if (termsCheckbox && acceptBtn) {
+        termsCheckbox.addEventListener('change', function() {
+            acceptBtn.disabled = !this.checked;
+            if (this.checked) {
+                acceptBtn.style.opacity = '1';
+                acceptBtn.style.cursor = 'pointer';
+            } else {
+                acceptBtn.style.opacity = '0.5';
+                acceptBtn.style.cursor = 'not-allowed';
+            }
+        });
+    }
+    
+    // Confirm before accepting proposal
+    const proposalForm = document.getElementById('proposal-form');
+    if (proposalForm) {
+        proposalForm.addEventListener('submit', function(e) {
+            const action = e.submitter.value;
+            
+            if (action === 'accept') {
+                if (!termsCheckbox.checked) {
+                    e.preventDefault();
+                    alert('Por favor, aceite os termos e condições para prosseguir.');
+                    return;
+                }
+                
+                const confirmed = confirm('Tem certeza que deseja aceitar esta proposta de empréstimo?');
+                if (!confirmed) {
+                    e.preventDefault();
+                }
+            } else if (action === 'reject') {
+                const confirmed = confirm('Tem certeza que deseja recusar esta proposta? Você poderá fazer uma nova simulação.');
+                if (!confirmed) {
+                    e.preventDefault();
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

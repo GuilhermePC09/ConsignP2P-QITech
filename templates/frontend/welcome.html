@@ -1,0 +1,75 @@
+{% extends 'frontend/base.html' %}
+
+{% block title %}QInvest — Bem-vindo{% endblock %}
+
+{% block header_subtitle %}Painel do Usuário{% endblock %}
+{% block step_indicator %}Painel{% endblock %}
+
+{% block content %}
+<div class="wrapper">
+    <div class="card">
+        <header>
+            <h2>🎉 Bem-vindo ao QInvest</h2>
+            <p>Seu painel de controle para empréstimos e investimentos</p>
+        </header>
+        <div class="body">
+        {% if user_context %}
+            <div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <h3>✅ Usuário Autenticado</h3>
+                        <p><strong>Tomador:</strong> {{ user_context.name }}</p>
+                        <p><strong>ID:</strong> {{ user_context.borrower_id }}</p>
+                        <p><strong>Status KYC:</strong> {{ user_context.kyc_status }}</p>
+                    </div>
+                    <a href="{% url 'frontend:logout' %}" class="btn btn-secondary" style="margin-left: 16px;">
+                        <svg style="width: 16px; height: 16px; margin-right: 6px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                            <polyline points="16,17 21,12 16,7"/>
+                            <line x1="21" y1="12" x2="9" y2="12"/>
+                        </svg>
+                        Sair
+                    </a>
+                </div>
+            </div>
+        {% else %}
+            <div style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <h3>⚠️ Usuário não autenticado</h3>
+                <p>Faça login para acessar todas as funcionalidades da API.</p>
+                <a href="{% url 'frontend:login' %}" class="btn btn-primary">Fazer Login</a>
+            </div>
+        {% endif %}
+
+        <div class="upload-item">
+            <div class="left">
+                <div class="title">📊 Simular Empréstimo</div>
+                <div class="desc">Calcule as condições do seu empréstimo consignado</div>
+            </div>
+            <a href="{% url 'frontend:loan_simulation' %}" class="btn btn-outline">
+                Simular →
+            </a>
+        </div>
+
+        <div class="upload-item">
+            <div class="left">
+                <div class="title">📄 Verificar Documentos</div>
+                <div class="desc">Envie documentos para análise</div>
+            </div>
+            <a href="{% url 'frontend:document_verification' %}" class="btn btn-outline">
+                Enviar →
+            </a>
+        </div>
+
+        <div class="upload-item">
+            <div class="left">
+                <div class="title">💰 Ofertas Disponíveis</div>
+                <div class="desc">Veja ofertas de empréstimo personalizadas</div>
+            </div>
+            <a href="{% url 'frontend:marketplace' %}" class="btn btn-outline">
+                Ver Ofertas →
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

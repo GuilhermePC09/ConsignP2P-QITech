@@ -1,0 +1,236 @@
+{% extends 'frontend/base.html' %}
+
+{% block title %}QInvest — Simulação de Empréstimo (Etapa 3 de 6){% endblock %}
+
+{% block stepbar %}
+<div class="stepbar"><div style="width: calc(100% * 3 / 6)"></div></div>
+{% endblock %}
+
+{% block header %}
+<div class="header">
+    <div class="title">
+        <span style="display:grid;place-items:center;width:28px;height:28px;border-radius:999px;background:var(--brand-50);color:var(--brand-700)">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+        </span>
+        <div>
+            <div>Simulação de Empréstimo</div>
+            <div class="subtitle">Vamos calcular sua proposta</div>
+        </div>
+    </div>
+    <div style="font-size:14px;color:var(--ink-700)">Etapa 3 de 6</div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="wrapper">
+    {% if form.non_field_errors %}
+        <div style="margin-bottom: 20px; padding: 15px; border-radius: 12px; background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA;">
+            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="card">
+        <header>
+            <h2>Informações do Empréstimo</h2>
+            <p>Preencha os dados</p>
+        </header>
+        <div class="body">
+            <form method="post" id="simulation-form">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="field">
+                        <label class="label" for="{{ form.loan_amount.id_for_label }}">{{ form.loan_amount.label }}</label>
+                        <div class="input">
+                            <span class="prefix">R$</span>
+                            {{ form.loan_amount }}
+                        </div>
+                        <div class="hint {% if form.loan_amount.errors %}error{% endif %}">
+                            {% if form.loan_amount.errors %}
+                                {% for error in form.loan_amount.errors %}{{ error }}{% endfor %}
+                            {% else %}
+                                Mín. R$ 500,00 - Máx. R$ 10.000,00
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" for="{{ form.loan_term.id_for_label }}">{{ form.loan_term.label }}</label>
+                        <div class="input">
+                            {{ form.loan_term }}
+                        </div>
+                        <div class="hint {% if form.loan_term.errors %}error{% endif %}">
+                            {% if form.loan_term.errors %}
+                                {% for error in form.loan_term.errors %}{{ error }}{% endfor %}
+                            {% else %}
+                                1 a 96 meses
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="form-actions">
+            <button type="button" class="btn btn-secondary" onclick="goBack()">← Voltar</button>
+            <button type="submit" form="simulation-form" class="btn btn-primary" id="nextBtn">Próximo passo →</button>
+        </div>
+    </div>
+    
+    <div class="secure-note">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="10" rx="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        <span>Seus dados estão seguros e protegidos</span>
+    </div>
+</div>
+
+<script>
+// Robust back navigation function
+function goBack() {
+    // Check if there's history to go back to
+    if (window.history.length > 1) {
+        window.history.back();
+    } else {
+        // Fallback to register page as it's the logical previous step
+        window.location.href = "{% url 'frontend:register' %}";
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const loanAmountInput = document.getElementById('id_loan_amount');
+    const loanTermInput = document.getElementById('id_loan_term');
+    const nextBtn = document.getElementById('nextBtn');
+    
+    // Currency formatting for loan amount input
+    if (loanAmountInput) {
+        // Format initial value if present
+        if (loanAmountInput.value && loanAmountInput.value !== '') {
+            let initialValue = parseFloat(loanAmountInput.value);
+            if (!isNaN(initialValue)) {
+                loanAmountInput.value = initialValue.toLocaleString('pt-BR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+        } else {
+            // Set default value if empty
+            loanAmountInput.value = '500,00';
+        }
+        
+        loanAmountInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            
+            if (value) {
+                // Convert to decimal
+                let decimalValue = parseInt(value) / 100;
+                
+                // Format as currency
+                e.target.value = decimalValue.toLocaleString('pt-BR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                
+                // Real-time validation feedback
+                const hint = e.target.parentElement.parentElement.querySelector('.hint');
+                
+                if (decimalValue < 500 || decimalValue > 10000) {
+                    e.target.style.borderColor = '#ef4444';
+                    hint.style.color = '#ef4444';
+                    if (decimalValue < 500) {
+                        hint.textContent = 'Valor mínimo é R$ 500,00';
+                    } else {
+                        hint.textContent = 'Valor máximo é R$ 10.000,00';
+                    }
+                    hint.classList.add('error');
+                } else {
+                    e.target.style.borderColor = '';
+                    hint.style.color = '';
+                    hint.textContent = 'Mín. R$ 500,00 - Máx. R$ 10.000,00';
+                    hint.classList.remove('error');
+                }
+            }
+        });
+        
+        // Validate amount on blur (as backup)
+        loanAmountInput.addEventListener('blur', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            let decimalValue = parseInt(value) / 100;
+            
+            const hint = e.target.parentElement.parentElement.querySelector('.hint');
+            
+            if (decimalValue && (decimalValue < 500 || decimalValue > 10000)) {
+                e.target.style.borderColor = '#ef4444';
+                hint.style.color = '#ef4444';
+                if (decimalValue < 500) {
+                    hint.textContent = 'Valor mínimo é R$ 500,00';
+                } else {
+                    hint.textContent = 'Valor máximo é R$ 10.000,00';
+                }
+                hint.classList.add('error');
+            } else {
+                e.target.style.borderColor = '';
+                hint.style.color = '';
+                hint.textContent = 'Mín. R$ 500,00 - Máx. R$ 10.000,00';
+                hint.classList.remove('error');
+            }
+        });
+    }
+    
+    // Validate term on input
+    if (loanTermInput) {
+        loanTermInput.addEventListener('input', function(e) {
+            let value = parseInt(e.target.value);
+            const hint = e.target.parentElement.parentElement.querySelector('.hint');
+            
+            if (value && (value < 1 || value > 96)) {
+                e.target.style.borderColor = '#ef4444';
+                hint.style.color = '#ef4444';
+                if (value < 1) {
+                    hint.textContent = 'Prazo mínimo é 1 mês';
+                } else {
+                    hint.textContent = 'Prazo máximo é 96 meses';
+                }
+                hint.classList.add('error');
+            } else {
+                e.target.style.borderColor = '';
+                hint.style.color = '';
+                hint.textContent = '1 a 96 meses';
+                hint.classList.remove('error');
+            }
+        });
+    }
+    
+    // Form validation before submit
+    document.getElementById('simulation-form').addEventListener('submit', function(e) {
+        let valorValue = loanAmountInput ? loanAmountInput.value.replace(/\D/g, '') : '';
+        let valorDecimal = parseInt(valorValue) / 100;
+        let mesesValue = loanTermInput ? parseInt(loanTermInput.value) : 0;
+        
+        let hasErrors = false;
+        
+        // Validate loan amount
+        if (!valorDecimal || valorDecimal < 500 || valorDecimal > 10000) {
+            e.preventDefault();
+            if (loanAmountInput) loanAmountInput.focus();
+            hasErrors = true;
+        }
+        
+        // Validate loan term
+        if (!mesesValue || mesesValue < 1 || mesesValue > 96) {
+            e.preventDefault();
+            if (!hasErrors && loanTermInput) loanTermInput.focus();
+            hasErrors = true;
+        }
+        
+        if (hasErrors) {
+            return false;
+        }
+        
+        // Note: No need to convert the value anymore - the backend handles both formats
+        // The BrazilianDecimalField will properly parse Brazilian format (1.500,00) or English format (1500.00)
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,363 @@
+{% extends 'frontend/base.html' %}
+
+{% block title %}QInvest — Cadastro{% if is_loan_flow %} (Etapa 2 de 6){% endif %}{% endblock %}
+
+{% if is_loan_flow %}
+{% block stepbar %}
+<div class="stepbar"><div style="width: calc(100% * 2 / 6)"></div></div>
+{% endblock %}
+{% endif %}
+
+{% block header %}
+<div class="header">
+    <div class="title">
+        <span style="display:grid;place-items:center;width:28px;height:28px;border-radius:999px;background:var(--brand-50);color:var(--brand-700)">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21a8 8 0 1 0-16 0"/>
+                <circle cx="12" cy="7" r="4"/>
+            </svg>
+        </span>
+        <div>
+            <div>Cadastro de Usuário</div>
+            <div class="subtitle">Informações Pessoais</div>
+        </div>
+    </div>
+    {% if is_loan_flow %}
+    <div style="font-size:14px;color:var(--ink-700)">Etapa 2 de 6</div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="wrapper">
+    {% if form.non_field_errors %}
+        <div style="margin-bottom: 20px; padding: 15px; border-radius: 12px; background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA;">
+            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="card" role="form" aria-labelledby="info-title">
+        <header>
+            <h2 id="info-title">Informações Pessoais</h2>
+            <p>Preencha seus dados pessoais para continuar o cadastro</p>
+        </header>
+        <div class="body">
+            <form method="post">
+                {% csrf_token %}
+                {% if is_loan_flow %}
+                    <input type="hidden" name="flow" value="loan">
+                {% endif %}
+                
+                <div class="field">
+                    <label class="label" for="{{ form.first_name.id_for_label }}">Primeiro Nome *</label>
+                    <div class="input">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21a8 8 0 1 0-16 0"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        {{ form.first_name }}
+                    </div>
+                    {% if form.first_name.errors %}
+                        <div class="form-error">
+                            {% for error in form.first_name.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="field">
+                    <label class="label" for="{{ form.last_name.id_for_label }}">Sobrenome *</label>
+                    <div class="input">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21a8 8 0 1 0-16 0"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        {{ form.last_name }}
+                    </div>
+                    {% if form.last_name.errors %}
+                        <div class="form-error">
+                            {% for error in form.last_name.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="field">
+                    <label class="label" for="{{ form.cpf.id_for_label }}">CPF *</label>
+                    <div class="input">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14,2 14,8 20,8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                        </svg>
+                        {{ form.cpf }}
+                    </div>
+                    <div class="hint">Formato: 000.000.000-00</div>
+                    {% if form.cpf.errors %}
+                        <div class="form-error">
+                            {% for error in form.cpf.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="field">
+                    <label class="label" for="{{ form.email.id_for_label }}">E-mail *</label>
+                    <div class="input">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                            <polyline points="22,6 12,13 2,6"/>
+                        </svg>
+                        {{ form.email }}
+                    </div>
+                    {% if form.email.errors %}
+                        <div class="form-error">
+                            {% for error in form.email.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="field">
+                    <label class="label" for="{{ form.phone_number.id_for_label }}">Telefone *</label>
+                    <div class="input">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                        </svg>
+                        {{ form.phone_number }}
+                    </div>
+                    <div class="hint">Formato: (11) 99999-9999</div>
+                    {% if form.phone_number.errors %}
+                        <div class="form-error">
+                            {% for error in form.phone_number.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="field">
+                    <label class="label" for="{{ form.password1.id_for_label }}">Senha *</label>
+                    <div class="input has-toggle" id="box-pwd">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="10" rx="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                        {{ form.password1 }}
+                        <button type="button" class="password-toggle" id="toggle-pwd1" aria-label="Mostrar senha">
+                            <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            <svg class="eye-off-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                                <line x1="1" y1="1" x2="23" y2="23"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="meter" aria-hidden="true"><div id="bar"></div></div>
+                    <div class="req-list" id="req">
+                        <div id="r-len" class="req-bad">• Pelo menos 8 caracteres</div>
+                        <div id="r-num" class="req-bad">• Pelo menos 1 número</div>
+                        <div id="r-let" class="req-bad">• Pelo menos 1 letra</div>
+                        <div id="r-sym" class="req-bad">• Pelo menos 1 símbolo</div>
+                    </div>
+                    {% if form.password1.errors %}
+                        <div class="form-error">
+                            {% for error in form.password1.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="field">
+                    <label class="label" for="{{ form.password2.id_for_label }}">Confirmar Senha *</label>
+                    <div class="input has-toggle" id="box-pwd2">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="10" rx="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                        {{ form.password2 }}
+                        <button type="button" class="password-toggle" id="toggle-pwd2" aria-label="Mostrar senha">
+                            <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            <svg class="eye-off-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                                <line x1="1" y1="1" x2="23" y2="23"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="err" class="hint" style="color:var(--danger); display:none">As senhas não conferem.</div>
+                    {% if form.password2.errors %}
+                        <div class="form-error">
+                            {% for error in form.password2.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+        <div class="form-actions">
+            <button type="button" class="btn btn-secondary" onclick="goBack()">← Voltar</button>
+            <button type="submit" form="cadastro-form" class="btn btn-primary">Próximo passo →</button>
+        </div>
+    </div>
+    
+    <div class="secure-note">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="10" rx="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        <span>Seus dados estão seguros e protegidos</span>
+    </div>
+</div>
+
+<script>
+// Robust back navigation function
+function goBack() {
+    // Check if there's history to go back to
+    if (window.history.length > 1) {
+        window.history.back();
+    } else {
+        // Fallback to home page as it's the entry point
+        window.location.href = "{% url 'frontend:home' %}";
+    }
+}
+
+// Add input masks for better UX
+document.addEventListener('DOMContentLoaded', function() {
+    // CPF mask
+    const cpfInput = document.getElementById('{{ form.cpf.id_for_label }}');
+    if (cpfInput) {
+        cpfInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            e.target.value = value;
+        });
+    }
+
+    // Phone mask
+    const phoneInput = document.getElementById('{{ form.phone_number.id_for_label }}');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            value = value.replace(/(\d{2})(\d)/, '($1) $2');
+            value = value.replace(/(\d{5})(\d)/, '$1-$2');
+            e.target.value = value;
+        });
+    }
+
+    // Password toggle functionality
+    function setupPasswordToggle(toggleId, inputId) {
+        const toggle = document.getElementById(toggleId);
+        const input = document.getElementById(inputId);
+        
+        if (!toggle || !input) return;
+        
+        const eyeIcon = toggle.querySelector('.eye-icon');
+        const eyeOffIcon = toggle.querySelector('.eye-off-icon');
+        
+        toggle.addEventListener('click', function() {
+            const isPassword = input.type === 'password';
+            
+            // Toggle input type
+            input.type = isPassword ? 'text' : 'password';
+            
+            // Toggle icons
+            eyeIcon.style.display = isPassword ? 'none' : 'block';
+            eyeOffIcon.style.display = isPassword ? 'block' : 'none';
+            
+            // Update aria-label
+            toggle.setAttribute('aria-label', isPassword ? 'Ocultar senha' : 'Mostrar senha');
+            
+            // Keep focus on input
+            input.focus();
+        });
+    }
+
+    // Setup toggles for both password fields
+    setupPasswordToggle('toggle-pwd1', '{{ form.password1.id_for_label }}');
+    setupPasswordToggle('toggle-pwd2', '{{ form.password2.id_for_label }}');
+
+    // Password strength validation (from Figma design)
+    const pwd = document.getElementById('{{ form.password1.id_for_label }}');
+    const pwd2 = document.getElementById('{{ form.password2.id_for_label }}');
+    const bar = document.getElementById('bar');
+    const err = document.getElementById('err');
+    const box1 = document.getElementById('box-pwd');
+    const box2 = document.getElementById('box-pwd2');
+    const submitBtn = document.querySelector('.btn.btn-primary');
+
+    const reqs = {
+        len: document.getElementById('r-len'),
+        num: document.getElementById('r-num'),
+        let: document.getElementById('r-let'),
+        sym: document.getElementById('r-sym'),
+    };
+
+    function score(p) {
+        const s = {
+            len: p.length >= 8,
+            num: /\d/.test(p),
+            let: /[A-Za-z]/.test(p),
+            sym: /[^A-Za-z0-9]/.test(p)
+        };
+        let k = 0;
+        for (const v of Object.values(s)) if (v) k++;
+        return { s, k };
+    }
+
+    function paintReq(id, ok) {
+        if (reqs[id]) {
+            reqs[id].classList.toggle('req-ok', ok);
+            reqs[id].classList.toggle('req-bad', !ok);
+        }
+    }
+
+    function updatePasswordStrength() {
+        if (!pwd || !pwd2) return;
+
+        const { s, k } = score(pwd.value);
+        paintReq('len', s.len);
+        paintReq('num', s.num);
+        paintReq('let', s.let);
+        paintReq('sym', s.sym);
+        
+        if (bar) bar.style.width = (k / 4 * 100) + '%';
+        
+        const strong = k === 4;
+        const match = strong && pwd.value === pwd2.value;
+        
+        if (box1) {
+            box1.classList.toggle('is-valid', strong);
+            box1.classList.toggle('is-invalid', !strong && pwd.value.length > 0);
+        }
+        
+        if (box2) {
+            box2.classList.toggle('is-valid', match);
+            box2.classList.toggle('is-invalid', !match && pwd2.value.length > 0);
+        }
+        
+        if (err) {
+            err.style.display = (pwd2.value.length > 0 && pwd.value !== pwd2.value) ? 'block' : 'none';
+        }
+        
+        if (submitBtn) {
+            submitBtn.toggleAttribute('disabled', !match);
+        }
+    }
+
+    if (pwd) pwd.addEventListener('input', updatePasswordStrength);
+    if (pwd2) pwd2.addEventListener('input', updatePasswordStrength);
+    
+    // Make button submit the form
+    const form = document.querySelector('form');
+    if (submitBtn && form) {
+        submitBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            form.submit();
+        });
+    }
+    
+    // Initial update
+    updatePasswordStrength();
+});
+</script>
+{% endblock %}

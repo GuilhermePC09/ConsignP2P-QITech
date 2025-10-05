@@ -318,5 +318,57 @@ class AuditLog(StampMixin):
     before = models.JSONField(default=dict, blank=True)
     after = models.JSONField(default=dict, blank=True)
 
+    def __str__(self):
+        return f"AuditLog {self.audit_id}"
+
+
+class InvestmentOffer(StampMixin):
+    """Investment offers available in the marketplace"""
+    RISK_CHOICES = [
+        ('baixo', 'Baixo'),
+        ('medio', 'Médio'),
+        ('alto', 'Alto'),
+    ]
+
+    STATUS_CHOICES = [
+        ('aberta', 'Aberta'),
+        ('proposta', 'Proposta'),
+        ('encerrada', 'Encerrada'),
+    ]
+
+    offer_id = models.UUIDField(
+        primary_key=True, default=uuid.uuid4, editable=False)
+
+    # Basic offer details
+    amount = models.DecimalField(**MONEY, help_text="Loan amount")
+    monthly_rate = models.DecimalField(
+        **RATE, help_text="Monthly interest rate")
+    annual_rate = models.DecimalField(**RATE, help_text="Annual CET rate")
+    term_months = models.IntegerField(help_text="Loan term in months")
+
+    # Risk and status
+    risk_level = models.CharField(
+        max_length=10, choices=RISK_CHOICES, default='medio')
+    status = models.CharField(
+        max_length=15, choices=STATUS_CHOICES, default='aberta')
+
+    # Validity
+    valid_until = models.DateTimeField(help_text="Offer validity date")
+
+    # Related borrower (optional, for linking to actual loans)
+    borrower = models.ForeignKey(
+        'Borrower',
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name='investment_offers'
+    )
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Offer {self.amount} @ {self.monthly_rate}% for {self.term_months}m"
+
 
 Investor._meta.get_field("primary_wallet").remote_field.model = Wallet
