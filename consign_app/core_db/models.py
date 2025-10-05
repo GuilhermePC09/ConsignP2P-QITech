@@ -1,7 +1,6 @@
 # core/models.py
 import uuid
 from django.db import models
-from django.contrib.auth.models import User
 
 # Helpers
 MONEY = dict(max_digits=18, decimal_places=2)
@@ -20,16 +19,6 @@ class StampMixin(models.Model):
 class Investor(StampMixin):
     investor_id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False)
-
-    # Link to authenticated user (optional - for OAuth users)
-    user = models.OneToOneField(
-        User,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name='investor_profile'
-    )
-
     type = models.CharField(max_length=16)                              # pf|pj
     name = models.CharField(max_length=255)
     document = models.CharField(
@@ -49,25 +38,10 @@ class Investor(StampMixin):
 
     def __str__(self): return f"{self.name} ({self.document})"
 
-    @property
-    def is_authenticated_user(self):
-        """Check if this investor has an associated authenticated user"""
-        return self.user is not None
-
 
 class Borrower(StampMixin):
     borrower_id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False)
-
-    # Link to authenticated user (optional - for OAuth users)
-    user = models.OneToOneField(
-        User,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name='borrower_profile'
-    )
-
     name = models.CharField(max_length=255)
     document = models.CharField(max_length=32, db_index=True)           # CPF
     email = models.EmailField(max_length=255, blank=True)
@@ -85,11 +59,6 @@ class Borrower(StampMixin):
     )
 
     def __str__(self): return f"{self.name} ({self.document})"
-
-    @property
-    def is_authenticated_user(self):
-        """Check if this borrower has an associated authenticated user"""
-        return self.user is not None
 
 
 class Wallet(StampMixin):

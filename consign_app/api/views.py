@@ -4,22 +4,20 @@ from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from django.contrib.auth import authenticate
 import uuid
 from datetime import date, datetime, timedelta
 from decimal import Decimal
+import requests
+from django.urls import reverse
+from consign_app.api.feature_builder import build_features_for_borrower, FeatureBuildError
 
-from .permissions import (
-    IsOAuth2Authenticated, IsUserAuthenticated, IsInvestorUser,
-    IsBorrowerUser, IsOwnerOrAdmin
-)
+from .permissions import IsOAuth2Authenticated
 
 from consign_app.core_db.models import (
     Investor, Borrower, LoanOffer, Contract, Installment,
     Payment, KycRisk, Wallet
 )
 from .serializers import (
-    InvestorUserRegistrationSerializer, BorrowerUserRegistrationSerializer,
     InvestorCreateSerializer, InvestorCreatedSerializer,
     OfferSummarySerializer, OfferDetailSerializer,
     InvestorHistorySerializer, BorrowerCreateSerializer,
@@ -57,98 +55,6 @@ def test_auth(request):
             'error': f'Exception in test endpoint: {str(e)}',
             'message': 'Test endpoint has errors'
         }, status=500)
-
-
-# ===============================================
-# USER REGISTRATION ENDPOINTS
-# ===============================================
-
-@api_view(['POST'])
-# Allow unauthenticated for registration
-@permission_classes([permissions.AllowAny])
-def register_investor(request):
-    """Register a new investor user"""
-    serializer = InvestorUserRegistrationSerializer(data=request.data)
-
-    if serializer.is_valid():
-        investor = serializer.save()
-
-        # Return created investor data
-        response_serializer = InvestorCreatedSerializer(investor)
-        return Response({
-            'message': 'Investor user registered successfully',
-            'investor': response_serializer.data,
-            'instructions': 'You can now authenticate using OAuth2 with your username/password or obtain API credentials.'
-        }, status=status.HTTP_201_CREATED)
-
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(['POST'])
-# Allow unauthenticated for registration
-@permission_classes([permissions.AllowAny])
-def register_borrower(request):
-    """Register a new borrower user"""
-    serializer = BorrowerUserRegistrationSerializer(data=request.data)
-
-    if serializer.is_valid():
-        borrower = serializer.save()
-
-        # Return created borrower data
-        response_serializer = BorrowerCreatedSerializer(borrower)
-        return Response({
-            'message': 'Borrower user registered successfully',
-            'borrower': response_serializer.data,
-            'instructions': 'You can now authenticate using OAuth2 with your username/password or obtain API credentials.'
-        }, status=status.HTTP_201_CREATED)
-
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(['GET'])
-@permission_classes([IsUserAuthenticated])
-def user_profile(request):
-    """Get current user's profile information"""
-    user = request.user
-
-    # Check if user has investor profile
-    if hasattr(user, 'investor_profile') and user.investor_profile:
-        serializer = InvestorCreatedSerializer(user.investor_profile)
-        return Response({
-            'user_type': 'investor',
-            'profile': serializer.data,
-            'user_info': {
-                'username': user.username,
-                'email': user.email,
-                'first_name': user.first_name,
-                'last_name': user.last_name
-            }
-        })
-
-    # Check if user has borrower profile
-    elif hasattr(user, 'borrower_profile') and user.borrower_profile:
-        serializer = BorrowerCreatedSerializer(user.borrower_profile)
-        return Response({
-            'user_type': 'borrower',
-            'profile': serializer.data,
-            'user_info': {
-                'username': user.username,
-                'email': user.email,
-                'first_name': user.first_name,
-                'last_name': user.last_name
-            }
-        })
-
-    else:
-        return Response({
-            'error': 'User has no investor or borrower profile',
-            'user_info': {
-                'username': user.username,
-                'email': user.email,
-                'first_name': user.first_name,
-                'last_name': user.last_name
-            }
-        }, status=status.HTTP_404_NOT_FOUND)
 
 
 # ===============================================
@@ -323,9 +229,6 @@ def borrower_create(request):
 @api_view(['POST'])
 @permission_classes([IsOAuth2Authenticated])
 def borrower_create_simulation(request, borrower_id):
-    """Create simulation and persist as offer"""
-
-    # Verify borrower exists
     borrower = get_object_or_404(Borrower, borrower_id=borrower_id)
 
     serializer = SimulationCreateSerializer(data=request.data)
@@ -336,35 +239,65 @@ def borrower_create_simulation(request, borrower_id):
     amount = data['amount']
     term_months = data['term_months']
 
-    # Mock rate calculation based on borrower risk
-    base_rate = Decimal("2.5")  # Base monthly rate
-    risk_adjustment = Decimal("0.0")
+    # CPF do borrower (ajuste o campo se necessário)
+    cpf = (getattr(borrower, "document", "") or "").replace(".", "").replace("-", "")
 
-    if borrower.risk_score:
-        if borrower.risk_score < 6.0:
-            risk_adjustment = Decimal("0.8")
-        elif borrower.risk_score < 7.5:
-            risk_adjustment = Decimal("0.3")
-        # else: no adjustment for good scores
+    # Overrides opcionais enviados no payload
+    overrides = request.data.get('features', {}) or {}
 
-    rate = base_rate + risk_adjustment
+    # ===== monta features via serviços internos (Dataprev/OF) =====
+    try:
+        features = build_features_for_borrower(
+            request=request,
+            cpf=cpf,
+            amount=float(amount),
+            term_months=int(term_months),
+            overrides=overrides
+        )
+    except FeatureBuildError as e:
+        return Response({"detail": f"Falha ao montar features: {str(e)}"}, status=400)
 
-    # Calculate CET and APR
-    monthly_rate = rate / 100
-    yearly_rate = (1 + monthly_rate) ** 12 - 1
-    apr = yearly_rate * 100
-    cet = apr + Decimal("5.0")  # Add fees to CET
+    # payload para o /risk/score
+    risk_payload = {
+        "features": features,
+        "amount": float(amount),
+        "term_months": int(term_months)
+    }
 
-    # Create the offer
+    # Constrói URL absoluta e propaga Authorization
+    risk_path = reverse('risk:score')  # path('score', views.score, name='score')
+    risk_url = request.build_absolute_uri(risk_path)
+
+    headers = {"Content-Type": "application/json"}
+    auth_header = request.META.get("HTTP_AUTHORIZATION")
+    if auth_header:
+        headers["Authorization"] = auth_header
+
+    # Chama o /risk/score
+    try:
+        r = requests.post(risk_url, json=risk_payload, headers=headers, timeout=5)
+        r.raise_for_status()
+        risk = r.json()
+    except requests.RequestException as e:
+        return Response({"detail": f"Falha ao consultar /risk/score: {e}"},
+                        status=status.HTTP_502_BAD_GATEWAY)
+
+    # Usa os campos retornados pelo risk
+    monthly_rate = Decimal(str(risk["rate_monthly"]))
+    rate = monthly_rate
+    apr = Decimal(str(risk.get("rate_yearly_eff", 0)))
+    cet = Decimal(str(risk.get("cet_yearly", apr)))
+
+    # Cria a offer
     offer = LoanOffer.objects.create(
         borrower=borrower,
         amount=amount,
-        rate=rate,
+        rate=rate,                      # Taxa mensal
         term_months=term_months,
         valid_until=date.today() + timedelta(days=30),
         status="draft",
-        cet=cet,
-        apr=apr,
+        cet=cet,                        # CET (a.a.) vindo do risk
+        apr=apr,                        # APR (a.a.) vindo do risk
         fees={
             "origination_fee": float(amount * Decimal("0.02")),
             "iof": float(amount * Decimal("0.0038")),
@@ -373,32 +306,38 @@ def borrower_create_simulation(request, borrower_id):
         external_reference=f"SIM-{uuid.uuid4()}"
     )
 
-    # Generate preview installments
-    if monthly_rate == 0:
-        pmt = amount / term_months
+    # Parcela: usa installment do risk se houver; senão calcula localmente
+    installment = risk.get("installment")
+    if installment is not None:
+        pmt = Decimal(str(installment)).quantize(Decimal("0.01"))
     else:
-        pmt = amount * (monthly_rate * (1 + monthly_rate) ** term_months) / \
-            ((1 + monthly_rate) ** term_months - 1)
+        if monthly_rate == 0:
+            pmt = Decimal(amount) / Decimal(term_months)
+        else:
+            mr = monthly_rate
+            n = Decimal(term_months)
+            pmt = Decimal(amount) * (mr * (1 + mr) ** n) / ((1 + mr) ** n - 1)
+        pmt = pmt.quantize(Decimal("0.01"))
 
+    # Preview de parcelas
     preview_installments = []
     for i in range(term_months):
         due_date = date.today() + timedelta(days=30 * (i + 1))
         preview_installments.append({
             "due_date": due_date,
-            "amount": pmt
+            "amount": float(pmt)
         })
 
     result_data = {
         "offer_id": offer.offer_id,
-        "cet": cet,
-        "apr": apr,
+        "cet": float(cet),
+        "apr": float(apr),
         "preview_installments": preview_installments,
         "external_reference": offer.external_reference
     }
 
-    serializer = SimulationResultSerializer(result_data)
-    return Response(serializer.data, status=status.HTTP_201_CREATED)
-
+    out = SimulationResultSerializer(result_data)
+    return Response(out.data, status=status.HTTP_201_CREATED)
 
 # ===============================================
 # KYC ENDPOINTS

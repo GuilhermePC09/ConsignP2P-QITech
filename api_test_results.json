@@ -1,79 +1,25 @@
 [
   {
-    "timestamp": "2025-10-05T01:11:22.714996",
+    "timestamp": "2025-10-05T02:07:37.690797",
     "endpoint": "/test/",
     "method": "GET",
     "status_code": 200,
     "success": true,
     "error": null,
-    "response_sample": "{'message': 'OAuth2 authentication working!', 'authenticated': False, 'user': 'None', 'has_auth': True, 'auth_type': 'AccessToken', 'access_granted': True}"
+    "response_sample": "{'message': 'OAuth2 authentication working!', 'authenticated': True, 'user': 'admin', 'has_auth': True, 'auth_type': 'AccessToken', 'access_granted': True}"
   },
   {
-    "timestamp": "2025-10-05T01:11:23.881097",
-    "endpoint": "/auth/register/investor/",
-    "method": "POST",
-    "status_code": 201,
-    "success": true,
-    "error": null,
-    "response_sample": "{'message': 'Investor user registered successfully', 'investor': {'investor_id': '992c7df4-4f31-4896-abbc-675c307490e8', 'name': 'John Doe Investment LLC', 'document': '98765432107482', 'email': 'inve"
-  },
-  {
-    "timestamp": "2025-10-05T01:11:24.756561",
-    "endpoint": "/auth/register/borrower/",
-    "method": "POST",
-    "status_code": 201,
-    "success": true,
-    "error": null,
-    "response_sample": "{'message': 'Borrower user registered successfully', 'borrower': {'borrower_id': '0d9c7f93-8c08-4872-b593-ac24fee2e7a4', 'name': 'Jane Smith', 'document': '12345678902', 'email': 'borrower.1759637482@"
-  },
-  {
-    "timestamp": "2025-10-05T01:11:25.350509",
-    "endpoint": "/auth/register/investor/",
-    "method": "POST",
-    "status_code": 400,
-    "success": true,
-    "error": null,
-    "response_sample": "{'username': ['Username already exists'], 'email': ['Email already exists'], 'document': ['Document already registered']}"
-  },
-  {
-    "timestamp": "2025-10-05T01:11:25.944071",
-    "endpoint": "/auth/register/borrower/",
-    "method": "POST",
-    "status_code": 400,
-    "success": true,
-    "error": null,
-    "response_sample": "{'username': ['Username already exists'], 'email': ['Email already exists'], 'document': ['Document already registered']}"
-  },
-  {
-    "timestamp": "2025-10-05T01:11:28.690613",
-    "endpoint": "/auth/profile/",
-    "method": "GET",
-    "status_code": 200,
-    "success": true,
-    "error": null,
-    "response_sample": "{'user_type': 'investor', 'profile': {'investor_id': '992c7df4-4f31-4896-abbc-675c307490e8', 'name': 'John Doe Investment LLC', 'document': '98765432107482', 'email': 'investor.1759637482@example.com'"
-  },
-  {
-    "timestamp": "2025-10-05T01:11:32.281345",
-    "endpoint": "/auth/profile/",
-    "method": "GET",
-    "status_code": 200,
-    "success": true,
-    "error": null,
-    "response_sample": "{'user_type': 'borrower', 'profile': {'borrower_id': '0d9c7f93-8c08-4872-b593-ac24fee2e7a4', 'name': 'Jane Smith', 'document': '12345678902', 'email': 'borrower.1759637482@example.com', 'phone_number'"
-  },
-  {
-    "timestamp": "2025-10-05T01:11:38.284243",
+    "timestamp": "2025-10-05T02:07:38.324678",
     "endpoint": "/investors/",
     "method": "POST",
     "status_code": 201,
     "success": true,
     "error": null,
-    "response_sample": "{'investor_id': 'b295d420-a4a3-4762-945f-2efd57136cd3', 'name': 'Test Investor API', 'document': '12345678901', 'email': 'test.investor@example.com', 'phone_number': '+5511999999999', 'type': 'pf', 'k"
+    "response_sample": "{'investor_id': '127fc6a4-446b-4bed-9a8a-cd4bf06e7795', 'name': 'Test Investor API', 'document': '12345678901', 'email': 'test.investor@example.com', 'phone_number': '+5511999999999', 'type': 'pf', 'k"
   },
   {
-    "timestamp": "2025-10-05T01:11:45.197752",
-    "endpoint": "/investors/b295d420-a4a3-4762-945f-2efd57136cd3/offers/",
+    "timestamp": "2025-10-05T02:07:44.927864",
+    "endpoint": "/investors/127fc6a4-446b-4bed-9a8a-cd4bf06e7795/offers/",
     "method": "GET",
     "status_code": 200,
     "success": true,
@@ -81,8 +27,8 @@
     "response_sample": "{'count': 20, 'next': None, 'previous': None, 'results': [{'offer_id': 'de2c8a54-c8e0-46bb-81c4-cff41da406ac', 'amount': '26513.00', 'rate': '0.015685', 'term_months': 23, 'cet': '0.017685', 'apr': '0"
   },
   {
-    "timestamp": "2025-10-05T01:11:45.946792",
-    "endpoint": "/investors/b295d420-a4a3-4762-945f-2efd57136cd3/history/",
+    "timestamp": "2025-10-05T02:07:45.661010",
+    "endpoint": "/investors/127fc6a4-446b-4bed-9a8a-cd4bf06e7795/history/",
     "method": "GET",
     "status_code": 200,
     "success": true,
@@ -90,8 +36,8 @@
     "response_sample": "{'contracts': [], 'installments': [], 'payments': []}"
   },
   {
-    "timestamp": "2025-10-05T01:11:46.247255",
-    "endpoint": "/investors/b295d420-a4a3-4762-945f-2efd57136cd3/kyc/",
+    "timestamp": "2025-10-05T02:07:45.956746",
+    "endpoint": "/investors/127fc6a4-446b-4bed-9a8a-cd4bf06e7795/kyc/",
     "method": "GET",
     "status_code": 200,
     "success": true,
@@ -99,35 +45,44 @@
     "response_sample": "{'kyc_status': 'pending', 'reason': None}"
   },
   {
-    "timestamp": "2025-10-05T01:11:47.282257",
-    "endpoint": "/investors/b295d420-a4a3-4762-945f-2efd57136cd3/kyc/submit/",
+    "timestamp": "2025-10-05T02:07:46.977590",
+    "endpoint": "/investors/127fc6a4-446b-4bed-9a8a-cd4bf06e7795/kyc/submit/",
     "method": "POST",
     "status_code": 202,
     "success": true,
     "error": null,
-    "response_sample": "{'status': 'in_review', 'natural_person_key': 'NP-a214fdc4def6', 'legal_person_key': None}"
+    "response_sample": "{'status': 'in_review', 'natural_person_key': 'NP-50cc56c94bbb', 'legal_person_key': None}"
   },
   {
-    "timestamp": "2025-10-05T01:11:47.588868",
+    "timestamp": "2025-10-05T02:07:47.283059",
     "endpoint": "/borrowers/",
     "method": "POST",
     "status_code": 201,
     "success": true,
     "error": null,
-    "response_sample": "{'borrower_id': '822e55d0-1847-4251-acd4-a368882d94bc', 'name': 'Test Borrower API', 'document': '98765432100', 'email': 'test.borrower@example.com', 'phone_number': '+5511888888888', 'kyc_status': 'p"
+    "response_sample": "{'borrower_id': '1f542a16-6c3e-4e57-bef1-19aaaef5897d', 'name': 'Test Borrower API', 'document': '98765432100', 'email': 'test.borrower@example.com', 'phone_number': '+5511888888888', 'kyc_status': 'p"
   },
   {
-    "timestamp": "2025-10-05T01:11:48.038595",
-    "endpoint": "/borrowers/822e55d0-1847-4251-acd4-a368882d94bc/simulation/",
+    "timestamp": "2025-10-05T02:07:47.645453",
+    "endpoint": "/borrowers/1f542a16-6c3e-4e57-bef1-19aaaef5897d/simulation/",
     "method": "POST",
-    "status_code": 201,
-    "success": true,
+    "status_code": 500,
+    "success": false,
     "error": null,
-    "response_sample": "{'offer_id': '882cc150-b0a2-44db-82e4-79ab173d7f3f', 'cet': '39.488882', 'apr': '34.488882', 'preview_installments': [{'due_date': '2025-11-04', 'amount': '974.87'}, {'due_date': '2025-12-04', 'amount"
+    "response_sample": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">\n  <meta name=\"robots\" content=\"NONE,NOARCHIVE\">\n  <title>NoReverseMatch\n          at /api/"
   },
   {
-    "timestamp": "2025-10-05T01:11:48.343584",
-    "endpoint": "/borrowers/822e55d0-1847-4251-acd4-a368882d94bc/kyc/",
+    "timestamp": "2025-10-05T02:07:47.645475",
+    "endpoint": "/borrowers/1f542a16-6c3e-4e57-bef1-19aaaef5897d/simulation/",
+    "method": "POST",
+    "status_code": 500,
+    "success": false,
+    "error": "Expected 201, got 500",
+    "response_sample": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">\n  <meta name=\"robots\" content=\"NONE,NOARCHIVE\">\n  <title>NoReverseMatch\n          at /api/"
+  },
+  {
+    "timestamp": "2025-10-05T02:07:47.938154",
+    "endpoint": "/borrowers/1f542a16-6c3e-4e57-bef1-19aaaef5897d/kyc/",
     "method": "GET",
     "status_code": 200,
     "success": true,
@@ -135,16 +90,16 @@
     "response_sample": "{'kyc_status': 'pending', 'reason': None}"
   },
   {
-    "timestamp": "2025-10-05T01:11:49.382891",
-    "endpoint": "/borrowers/822e55d0-1847-4251-acd4-a368882d94bc/kyc/submit/",
+    "timestamp": "2025-10-05T02:07:48.997763",
+    "endpoint": "/borrowers/1f542a16-6c3e-4e57-bef1-19aaaef5897d/kyc/submit/",
     "method": "POST",
     "status_code": 202,
     "success": true,
     "error": null,
-    "response_sample": "{'status': 'in_review', 'natural_person_key': 'NP-1fc91e259633', 'legal_person_key': None}"
+    "response_sample": "{'status': 'in_review', 'natural_person_key': 'NP-a4313652bfe4', 'legal_person_key': None}"
   },
   {
-    "timestamp": "2025-10-05T01:11:49.686606",
+    "timestamp": "2025-10-05T02:07:49.301638",
     "endpoint": "/investors/00000000-0000-0000-0000-000000000000/offers/",
     "method": "GET",
     "status_code": 404,
@@ -153,25 +108,25 @@
     "response_sample": "{'detail': 'No Investor matches the given query.'}"
   },
   {
-    "timestamp": "2025-10-05T01:11:50.136467",
-    "endpoint": "/borrowers/822e55d0-1847-4251-acd4-a368882d94bc/simulation/",
-    "method": "POST",
-    "status_code": 201,
-    "success": true,
-    "error": null,
-    "response_sample": "{'offer_id': '9119f0b1-5aed-4239-bb11-cc5f99223107', 'cet': '39.488882', 'apr': '34.488882', 'preview_installments': [{'due_date': '2025-11-04', 'amount': '838.69'}, {'due_date': '2025-12-04', 'amount"
-  },
-  {
-    "timestamp": "2025-10-05T01:11:50.883798",
-    "endpoint": "/offers/9119f0b1-5aed-4239-bb11-cc5f99223107/",
+    "timestamp": "2025-10-05T02:07:49.601093",
+    "endpoint": "/offers/69b0d174-a948-34c3-0d65-0b6e9ecb1d5f/",
     "method": "GET",
-    "status_code": 200,
-    "success": true,
+    "status_code": 404,
+    "success": false,
     "error": null,
-    "response_sample": "{'offer_id': '9119f0b1-5aed-4239-bb11-cc5f99223107', 'amount': '15000.00', 'rate': '2.500000', 'term_months': 24, 'cet': '39.488882', 'apr': '34.488882', 'issuer': 'QI Tech', 'borrower_risk': 'medium'"
+    "response_sample": "{'detail': 'No LoanOffer matches the given query.'}"
   },
   {
-    "timestamp": "2025-10-05T01:11:50.894039",
+    "timestamp": "2025-10-05T02:07:49.601184",
+    "endpoint": "/offers/69b0d174-a948-34c3-0d65-0b6e9ecb1d5f/",
+    "method": "GET",
+    "status_code": 404,
+    "success": false,
+    "error": "Expected 200, got 404",
+    "response_sample": "{'detail': 'No LoanOffer matches the given query.'}"
+  },
+  {
+    "timestamp": "2025-10-05T02:07:49.613739",
     "endpoint": "/invalid/",
     "method": "GET",
     "status_code": 404,
@@ -180,7 +135,7 @@
     "response_sample": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">\n  <title>Page not found at /api/v1/invalid/</title>\n  <meta name=\"robots\" content=\"NONE,NO"
   },
   {
-    "timestamp": "2025-10-05T01:11:51.190776",
+    "timestamp": "2025-10-05T02:07:49.912799",
     "endpoint": "/investors/00000000-0000-0000-0000-000000000000/offers/",
     "method": "GET",
     "status_code": 404,
@@ -189,7 +144,7 @@
     "response_sample": "{'detail': 'No Investor matches the given query.'}"
   },
   {
-    "timestamp": "2025-10-05T01:11:51.340197",
+    "timestamp": "2025-10-05T02:07:50.068507",
     "endpoint": "/investors/",
     "method": "POST",
     "status_code": 400,
@@ -198,7 +153,7 @@
     "response_sample": "{'name': ['This field may not be blank.']}"
   },
   {
-    "timestamp": "2025-10-05T01:11:51.342316",
+    "timestamp": "2025-10-05T02:07:50.073702",
     "endpoint": "/test/",
     "method": "GET",
     "status_code": 401,

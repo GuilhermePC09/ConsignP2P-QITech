@@ -88,191 +88,6 @@ class P2PAPITester:
             self.log_test(endpoint, method, 0, False, None, str(e))
             return None
 
-    def get_user_token(self, username: str, password: str) -> Optional[str]:
-        """Get OAuth2 token for user authentication"""
-        token_url = f"{self.base_url}/o/token/"
-        token_data = {
-            'grant_type': 'password',
-            'client_id': 'p2p-password-client',
-            'client_secret': 'p2p-password-secret',
-            'username': username,
-            'password': password
-        }
-
-        try:
-            response = requests.post(token_url, data=token_data)
-            if response.status_code == 200:
-                token_info = response.json()
-                return token_info.get('access_token')
-            else:
-                print(
-                    f"❌ Failed to get user token: {response.status_code} - {response.text}")
-                return None
-        except Exception as e:
-            print(f"❌ Error getting user token: {e}")
-            return None
-
-    def test_user_registration_endpoints(self):
-        """Test user registration endpoints"""
-        print("\n👥 Testing User Registration Endpoints...")
-
-        # Generate unique identifiers for this test run
-        import time
-        timestamp = str(int(time.time()))
-
-        # Test investor registration
-        investor_reg_data = {
-            "username": f"test_investor_{timestamp}",
-            "email": f"investor.{timestamp}@example.com",
-            "password": "securepass123",
-            "first_name": "John",
-            "last_name": "Doe",
-            "name": "John Doe Investment LLC",
-            "document": f"9876543210{timestamp[-4:]}",  # Unique document
-            "phone_number": "+5511888888888",
-            "preferred_payout_method": "pix"
-        }
-
-        # Temporarily remove auth header for registration (public endpoint)
-        temp_headers = self.session.headers.copy()
-        if 'Authorization' in self.session.headers:
-            del self.session.headers['Authorization']
-
-        created_investor_user = self.test_endpoint(
-            '/auth/register/investor/', 'POST', investor_reg_data, 201)
-
-        if created_investor_user:
-            self.created_objects['investor_user'] = {
-                'username': investor_reg_data['username'],
-                'password': investor_reg_data['password'],
-                'investor_id': created_investor_user.get('investor', {}).get('investor_id')
-            }
-            print(f"   Created investor user: {investor_reg_data['username']}")
-
-        # Test borrower registration
-        borrower_reg_data = {
-            "username": f"test_borrower_{timestamp}",
-            "email": f"borrower.{timestamp}@example.com",
-            "password": "securepass123",
-            "first_name": "Jane",
-            "last_name": "Smith",
-            "name": "Jane Smith",
-            # Unique CPF-like document (11 digits)
-            "document": f"1234567890{timestamp[-1:]}",
-            "phone_number": "+5511777777777"
-        }
-
-        created_borrower_user = self.test_endpoint(
-            '/auth/register/borrower/', 'POST', borrower_reg_data, 201)
-
-        if created_borrower_user:
-            self.created_objects['borrower_user'] = {
-                'username': borrower_reg_data['username'],
-                'password': borrower_reg_data['password'],
-                'borrower_id': created_borrower_user.get('borrower', {}).get('borrower_id')
-            }
-            print(f"   Created borrower user: {borrower_reg_data['username']}")
-
-        # Restore original headers
-        self.session.headers.update(temp_headers)
-
-        # Test duplicate registration (should fail)
-        print("   Testing duplicate registration validation...")
-        self.test_endpoint(
-            '/auth/register/investor/', 'POST', investor_reg_data, 400)
-        self.test_endpoint(
-            '/auth/register/borrower/', 'POST', borrower_reg_data, 400)
-
-    def test_user_authentication_flow(self):
-        """Test user authentication and profile access"""
-        print("\n🔐 Testing User Authentication Flow...")
-
-        # Test investor user authentication
-        if 'investor_user' in self.created_objects:
-            investor_creds = self.created_objects['investor_user']
-            investor_token = self.get_user_token(
-                investor_creds['username'],
-                investor_creds['password']
-            )
-
-            if investor_token:
-                print(f"✅ Got investor token: {investor_token[:20]}...")
-
-                # Test profile access with investor token
-                temp_headers = self.session.headers.copy()
-                self.session.headers['Authorization'] = f'Bearer {investor_token}'
-
-                profile_response = self.test_endpoint(
-                    '/auth/profile/', 'GET', expected_status=200)
-                if profile_response:
-                    print(
-                        f"   Investor profile type: {profile_response.get('user_type')}")
-                    user_info = profile_response.get('user_info', {})
-                    print(
-                        f"   User: {user_info.get('first_name')} {user_info.get('last_name')} ({user_info.get('email')})")
-
-                # Restore original headers
-                self.session.headers.update(temp_headers)
-
-        # Test borrower user authentication
-        if 'borrower_user' in self.created_objects:
-            borrower_creds = self.created_objects['borrower_user']
-            borrower_token = self.get_user_token(
-                borrower_creds['username'],
-                borrower_creds['password']
-            )
-
-            if borrower_token:
-                print(f"✅ Got borrower token: {borrower_token[:20]}...")
-
-                # Test profile access with borrower token
-                temp_headers = self.session.headers.copy()
-                self.session.headers['Authorization'] = f'Bearer {borrower_token}'
-
-                profile_response = self.test_endpoint(
-                    '/auth/profile/', 'GET', expected_status=200)
-                if profile_response:
-                    print(
-                        f"   Borrower profile type: {profile_response.get('user_type')}")
-                    user_info = profile_response.get('user_info', {})
-                    print(
-                        f"   User: {user_info.get('first_name')} {user_info.get('last_name')} ({user_info.get('email')})")
-
-                # Restore original headers
-                self.session.headers.update(temp_headers)
-
-    def test_user_permission_controls(self):
-        """Test that users can only access their own data"""
-        print("\n🔒 Testing User Permission Controls...")
-
-        if 'investor_user' in self.created_objects and 'borrower_user' in self.created_objects:
-            # Get tokens for both users
-            investor_creds = self.created_objects['investor_user']
-            borrower_creds = self.created_objects['borrower_user']
-
-            investor_token = self.get_user_token(
-                investor_creds['username'], investor_creds['password'])
-            borrower_token = self.get_user_token(
-                borrower_creds['username'], borrower_creds['password'])
-
-            if investor_token and borrower_token:
-                # Test investor trying to access borrower endpoints (should fail)
-                temp_headers = self.session.headers.copy()
-                self.session.headers['Authorization'] = f'Bearer {investor_token}'
-
-                # This should fail because investor user doesn't have borrower profile
-                print("   Testing investor access to borrower endpoints...")
-                # Note: We'd need specific borrower-only endpoints to test this properly
-
-                # Test borrower trying to access investor endpoints (should fail)
-                self.session.headers['Authorization'] = f'Bearer {borrower_token}'
-
-                print("   Testing borrower access to investor endpoints...")
-                # Note: We'd need specific investor-only endpoints to test this properly
-
-                # Restore headers
-                self.session.headers.update(temp_headers)
-
     def test_auth_endpoint(self):
         """Test authentication endpoint"""
         print("\n🔐 Testing Authentication...")
@@ -383,41 +198,15 @@ class P2PAPITester:
         """Test offer-related endpoints"""
         print("\n📋 Testing Offer Endpoints...")
 
-        # Test with invalid investor ID (should return 404)
-        self.test_endpoint(
+        # Get existing offers from database to test detail view
+        offers_response = self.test_endpoint(
             '/investors/00000000-0000-0000-0000-000000000000/offers/', 'GET', expected_status=404)
 
-        # Test offer detail with a valid offer created during borrower simulation
-        if 'borrower_id' in self.created_objects:
-            borrower_id = self.created_objects['borrower_id']
-
-            # First create a simulation/offer for testing
-            simulation_data = {
-                "amount": 15000.00,
-                "term_months": 24
-            }
-
-            simulation_response = self.test_endpoint(
-                f'/borrowers/{borrower_id}/simulation/', 'POST',
-                simulation_data, expected_status=201)
-
-            if simulation_response and 'offer_id' in simulation_response:
-                offer_id = simulation_response['offer_id']
-                print(f"   Created offer: {offer_id}")
-
-                # Now test the offer detail endpoint with the real offer ID
-                self.test_endpoint(
-                    f'/offers/{offer_id}/', 'GET', expected_status=200)
-            else:
-                print("   Could not create offer for testing detail endpoint")
-                # Test with non-existent offer ID (expected 404)
-                self.test_endpoint(
-                    '/offers/00000000-0000-0000-0000-000000000000/', 'GET', expected_status=404)
-        else:
-            print("   No borrower available, testing with non-existent offer ID")
-            # Test with non-existent offer ID (expected 404)
-            self.test_endpoint(
-                '/offers/00000000-0000-0000-0000-000000000000/', 'GET', expected_status=404)
+        # Test offer detail with a known offer ID from the loaded data
+        # Using one of the loan offer IDs from the CSV data
+        # Use an offer ID present in the provided mock data (p2p_loan_offers.csv)
+        test_offer_id = "69b0d174-a948-34c3-0d65-0b6e9ecb1d5f"
+        self.test_endpoint(f'/offers/{test_offer_id}/', 'GET')
 
     def test_error_cases(self):
         """Test error handling"""
@@ -456,9 +245,6 @@ class P2PAPITester:
 
         # Run all test suites
         self.test_auth_endpoint()
-        self.test_user_registration_endpoints()
-        self.test_user_authentication_flow()
-        self.test_user_permission_controls()
         self.test_investor_endpoints()
         self.test_borrower_endpoints()
         self.test_offer_endpoints()
@@ -504,44 +290,15 @@ class P2PAPITester:
         print(f"\nDetailed results saved to: api_test_results.json")
 
 
-def get_client_credentials_token(base_url: str = "http://127.0.0.1:8000") -> Optional[str]:
-    """Get OAuth2 client credentials token"""
-    token_url = f"{base_url}/o/token/"
-    token_data = {
-        'grant_type': 'client_credentials',
-        'client_id': 'p2p-client-id',
-        'client_secret': 'p2p-secret'
-    }
-
-    try:
-        response = requests.post(token_url, data=token_data)
-        if response.status_code == 200:
-            token_info = response.json()
-            return token_info.get('access_token')
-        else:
-            print(
-                f"❌ Failed to get client credentials token: {response.status_code} - {response.text}")
-            return None
-    except Exception as e:
-        print(f"❌ Error getting client credentials token: {e}")
-        return None
-
-
 def main():
     """Main function"""
-    base_url = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8000"
-
-    # Try to get client credentials token automatically
-    print("🔑 Attempting to get OAuth2 client credentials token...")
-    token = get_client_credentials_token(base_url)
-
-    if not token:
-        print("❌ Could not obtain OAuth2 token automatically.")
-        print("Please ensure the server is running and OAuth is configured.")
-        print("Run: python manage.py setup_oauth")
+    if len(sys.argv) < 2:
+        print("Usage: python test_api_endpoints.py <oauth_token> [base_url]")
+        print("Example: python test_api_endpoints.py dl7tor4xDbTobt5FS9AUHDDN2CcjMX")
         sys.exit(1)
 
-    print(f"✅ Got OAuth2 token: {token[:20]}...")
+    token = sys.argv[1]
+    base_url = sys.argv[2] if len(sys.argv) > 2 else "http://127.0.0.1:8000"
 
     tester = P2PAPITester(base_url, token)
     tester.test_all_endpoints()

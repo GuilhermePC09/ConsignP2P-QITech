@@ -1,6 +1,7 @@
 from django.urls import path
-from risk.views import score_view
+from . import views
 
+app_name = "risk"
 urlpatterns = [
-    path("score", score_view, name="score"),
+    path("score", views.score_view, name="score"),
 ]

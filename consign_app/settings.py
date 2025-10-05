@@ -38,8 +38,7 @@ DEBUG = os.getenv('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = [h for h in os.getenv('ALLOWED_HOSTS', '').split(',') if h]
 
 # TODO: colocar na .env
-os.environ.setdefault(
-    "PD_MODEL_PATH", "mlops/training/risk__LOGR1/outputs/models/pd_logr1.joblib")
+os.environ.setdefault("PD_MODEL_PATH", "mlops/training/risk__LOGR1/outputs/models/pd_logr1.joblib")
 os.environ.setdefault("SCORING_CONF", "mlops/conf/scoring.yaml")
 
 # Application definition
@@ -190,11 +189,6 @@ OAUTH2_PROVIDER = {
     'REFRESH_TOKEN_EXPIRE_SECONDS': 3600 * 24,
     'CLIENT_SECRET_GENERATOR_CLASS': 'oauth2_provider.generators.ClientSecretGenerator',
     'APPLICATION_MODEL': 'oauth2_provider.Application',
-    # Enable password grants for user authentication
-    'AUTHORIZATION_CODE_EXPIRE_SECONDS': 600,
-    'RESOURCE_SERVER_INTROSPECTION_URL': None,
-    'ACCESS_TOKEN_GENERATOR': None,
-    'REFRESH_TOKEN_GENERATOR': None,
 }
 
 
